@@ -16,7 +16,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.multipart.MultipartFile;
+import ptknow.model.auth.Role;
 import ptknow.model.file.attachment.FileVisibility;
 import ptknow.model.file.attachment.resource.Purpose;
 import ptknow.model.file.attachment.resource.ResourceType;
@@ -96,9 +98,11 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
     @Transactional(readOnly = true)
     @Override
     public Profile seeByHandle(String handle, Auth initiator) {
-        //TODO add access guard
-        return repository.findByHandle(handle)
-                .orElseThrow(() -> new UserNotFoundException(handle));
+        Profile profile = getByHandle(handle);
+        if (!canSeeProfile(initiator)) {
+            throw new AccessDeniedException("You don't have permissions to view this profile");
+        }
+        return profile;
     }
 
     @Transactional(readOnly = true)
@@ -115,6 +119,18 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
     @Override
     public Auth getOwner(UUID resourceId) {
         return getProfile(resourceId).getUser();
+    }
+
+    private boolean canSeeProfile(Auth initiator) {
+        if (initiator == null || initiator.getRole() == null) {
+            return false;
+        }
+
+        Role role = initiator.getRole();
+        return role == Role.GUEST
+                || role == Role.STUDENT
+                || role == Role.TEACHER
+                || role == Role.ADMIN;
     }
 }
 
