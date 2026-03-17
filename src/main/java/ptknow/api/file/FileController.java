@@ -2,6 +2,7 @@ package ptknow.api.file;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import ptknow.dto.file.FileMetaDTO;
 import ptknow.exception.file.FileAccessDeniedException;
 import ptknow.model.auth.Auth;
 import ptknow.service.file.FileAccessService;
@@ -54,6 +55,18 @@ public class FileController {
                 .contentType(MediaType.parseMediaType(contentType != null ? contentType : MediaType.APPLICATION_OCTET_STREAM_VALUE))
                 .contentLength(openedFile.size())
                 .body(stream);
+    }
+
+    @GetMapping("/{id}/meta")
+    @PreAuthorize("hasAnyRole('GUEST', 'STUDENT', 'TEACHER', 'ADMIN')")
+    public ResponseEntity<FileMetaDTO> getFileMeta(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Auth user
+    ) throws IOException {
+        if (!accessService.canDelete(id, user))
+            throw new FileAccessDeniedException("You don't have permissions to view this file metadata");
+
+        return ResponseEntity.ok(fileService.getMeta(id));
     }
 
     @DeleteMapping("/{id}")
