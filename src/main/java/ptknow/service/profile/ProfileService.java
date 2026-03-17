@@ -62,6 +62,16 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
         return repository.save(profile);
     }
 
+    @Transactional(readOnly = true)
+    public Profile getProfile(UUID userId, Auth initiator) {
+        Profile profile = getProfile(userId);
+
+        if (!canManageProfile(profile, initiator))
+            throw new AccessDeniedException("You don't have permissions to view this profile");
+
+        return profile;
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public Profile updateAvatar(UUID userId, MultipartFile file) throws IOException {
         Profile profile = getProfile(userId);
@@ -86,6 +96,22 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
         }
 
         return updatedProfile;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteAvatar(UUID userId) throws IOException {
+        Profile profile = getProfile(userId);
+        File oldAvatar = profile.getAvatar();
+
+        if (oldAvatar == null) {
+            return;
+        }
+
+        profile.setAvatar(null);
+        repository.save(profile);
+
+        fileAttachmentService.deleteAllByFileId(oldAvatar.getId());
+        fileService.deleteFile(oldAvatar.getId());
     }
 
     @Transactional(readOnly = true)
@@ -131,6 +157,15 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
                 || role == Role.STUDENT
                 || role == Role.TEACHER
                 || role == Role.ADMIN;
+    }
+
+    private boolean canManageProfile(Profile profile, Auth initiator) {
+        if (initiator == null) {
+            return false;
+        }
+
+        return initiator.getRole() == Role.ADMIN ||
+                profile.getUser().getId().equals(initiator.getId());
     }
 }
 

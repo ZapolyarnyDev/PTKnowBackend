@@ -108,9 +108,13 @@ unenroll - отмена записи субъекта на ресурс
 ### ProfileController
 
 - `GET /v0/profile` - `ANONYMOUS`, `GUEST`, `STUDENT`, `TEACHER`, `ADMIN` - `Сделано`
+- `GET /v0/profile/me` - `OWNER(profile)` - `Сделано`
 - `GET /v0/profile/{handle}` - `ANONYMOUS`, `GUEST`, `STUDENT`, `TEACHER`, `ADMIN` - `Сделано`
+- `GET /v0/profile/id/{userId}` - `ADMIN`, `OWNER(profile)` - `Сделано`
+- `PATCH /v0/profile` - `OWNER(profile)` - `Сделано`
 - `PUT /v0/profile` - `OWNER(profile)` - `Сделано`
 - `POST /v0/profile/avatar` - `OWNER(profile)` - `Сделано`
+- `DELETE /v0/profile/avatar` - `OWNER(profile)` - `Сделано`
 
 ### FileController
 
@@ -150,17 +154,9 @@ unenroll - отмена записи субъекта на ресурс
 
 ## Матрица доступа: потенциально необходимые endpoint-ы
 
-Ниже перечислены endpoint-ы, которых сейчас нет в коде, но они логично потребуются для нормального CRUD и платформенной модели допобразования.
-
-### Auth and role management
-
-- `GET /v0/auth/me` - любой аутентифицированный пользователь - `Не сделано`
-
 ### Profile CRUD and moderation
 
-- `GET /v0/profile/id/{userId}` - `ADMIN`, `OWNER(profile)` - `Не сделано`
-- `DELETE /v0/profile/avatar` - `OWNER(profile)` - `Не сделано`
-- `PATCH /v0/profile` - `OWNER(profile)` - `Не сделано`
+- дополнительных endpoint-ов пока не выделено
 
 ### Course CRUD
 
