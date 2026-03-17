@@ -141,6 +141,9 @@ unenroll - отмена записи субъекта на ресурс
 - `POST /v0/lessons/{courseId}` - `OWNER(course)`, `EDITOR(course)`, `ADMIN` - `сделано`
 - `GET /v0/lessons/{lessonId}` - `OWNER(course)`, `EDITOR(course)`, `ENROLLED`, `ADMIN` - `сделано`
 - `GET /v0/lessons/course/{courseId}` - `OWNER(course)`, `EDITOR(course)`, `ENROLLED`, `ADMIN` - `сделано`
+- `PATCH /v0/lessons/{lessonId}` - `OWNER(lesson)`, `ADMIN` - `Сделано`
+- `PUT /v0/lessons/{lessonId}` - `OWNER(lesson)`, `ADMIN` - `Сделано`
+- `PATCH /v0/lessons/{lessonId}/state` - `OWNER(lesson)`, `ADMIN` - `Сделано`
 - `DELETE /v0/lessons/{lessonId}` - `OWNER(lesson)`, `OWNER(course)`, `ADMIN` - `сделано`
 - `POST /v0/lessons/{lessonId}/materials` - `OWNER(lesson)`, `ADMIN` - `сделано`
 - `DELETE /v0/lessons/{lessonId}/materials/{fileId}` - `OWNER(lesson)`, `ADMIN` - `сделано`
@@ -175,9 +178,7 @@ unenroll - отмена записи субъекта на ресурс
 
 ### Lesson CRUD
 
-- `PATCH /v0/lessons/{lessonId}` - `OWNER(lesson)`, `ADMIN` - `Нет в доменной модели`
-- `PUT /v0/lessons/{lessonId}` - `OWNER(lesson)`, `ADMIN` - `Нет в доменной модели`
-- `PATCH /v0/lessons/{lessonId}/state` - `OWNER(lesson)`, `ADMIN` - `Не сделано`
+- дополнительных endpoint-ов пока не выделено
 
 ### File management
 

@@ -1,6 +1,8 @@
 package ptknow.service.lesson;
 
 import ptknow.dto.lesson.CreateLessonDTO;
+import ptknow.dto.lesson.UpdateLessonDTO;
+import ptknow.dto.lesson.UpdateLessonStateDTO;
 import ptknow.exception.lesson.LessonCannotBeCreatedException;
 import ptknow.exception.lesson.LessonNotOwnedException;
 import ptknow.exception.lesson.NotAllowedToSeeLessonInfo;
@@ -104,6 +106,48 @@ public class LessonService implements OwnershipService<Long>, AccessService<Long
         lessonRepository.delete(lesson);
     }
 
+    @Transactional
+    public Lesson updateByPatch(Long lessonId, Auth initiator, UpdateLessonDTO dto) {
+        Lesson lesson = findById(lessonId);
+        validateCanManageLesson(lesson, initiator);
+
+        if (dto.name() != null)
+            lesson.setName(dto.name());
+        if (dto.description() != null)
+            lesson.setDescription(dto.description());
+        if (dto.beginAt() != null)
+            lesson.setBeginAt(dto.beginAt());
+        if (dto.endsAt() != null)
+            lesson.setEndsAt(dto.endsAt());
+        if (dto.type() != null)
+            lesson.setType(dto.type());
+
+        return lessonRepository.save(lesson);
+    }
+
+    @Transactional
+    public Lesson updateByPut(Long lessonId, Auth initiator, CreateLessonDTO dto) {
+        Lesson lesson = findById(lessonId);
+        validateCanManageLesson(lesson, initiator);
+
+        lesson.setName(dto.name());
+        lesson.setDescription(dto.description());
+        lesson.setBeginAt(dto.beginAt());
+        lesson.setEndsAt(dto.endsAt());
+        lesson.setType(dto.type());
+
+        return lessonRepository.save(lesson);
+    }
+
+    @Transactional
+    public Lesson updateState(Long lessonId, Auth initiator, UpdateLessonStateDTO dto) {
+        Lesson lesson = findById(lessonId);
+        validateCanManageLesson(lesson, initiator);
+
+        lesson.setState(dto.state());
+        return lessonRepository.save(lesson);
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public UUID uploadMaterial(Long lessonId, Auth initiator, MultipartFile material) throws IOException {
         Lesson lesson = findById(lessonId);
@@ -163,6 +207,12 @@ public class LessonService implements OwnershipService<Long>, AccessService<Long
     }
 
     private void validateCanManageMaterials(Lesson lesson, Auth initiator) {
+        if (initiator.getRole() != Role.ADMIN && !lesson.getOwner().equals(initiator)) {
+            throw new LessonNotOwnedException(initiator.getId());
+        }
+    }
+
+    private void validateCanManageLesson(Lesson lesson, Auth initiator) {
         if (initiator.getRole() != Role.ADMIN && !lesson.getOwner().equals(initiator)) {
             throw new LessonNotOwnedException(initiator.getId());
         }

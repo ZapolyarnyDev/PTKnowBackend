@@ -4,6 +4,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import ptknow.dto.lesson.CreateLessonDTO;
 import ptknow.dto.lesson.LessonDTO;
+import ptknow.dto.lesson.UpdateLessonDTO;
+import ptknow.dto.lesson.UpdateLessonStateDTO;
 import ptknow.mapper.lesson.LessonMapper;
 import ptknow.model.auth.Auth;
 import ptknow.service.lesson.LessonService;
@@ -91,6 +93,39 @@ public class LessonController {
     ) throws IOException {
         lessonService.deleteMaterial(lessonId, fileId, auth);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{lessonId}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<LessonDTO> patchLesson(
+            @PathVariable Long lessonId,
+            @Valid @RequestBody UpdateLessonDTO dto,
+            @AuthenticationPrincipal Auth auth
+    ) {
+        var lesson = lessonService.updateByPatch(lessonId, auth, dto);
+        return ResponseEntity.ok(lessonMapper.toDTO(lesson));
+    }
+
+    @PutMapping("/{lessonId}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<LessonDTO> putLesson(
+            @PathVariable Long lessonId,
+            @Valid @RequestBody CreateLessonDTO dto,
+            @AuthenticationPrincipal Auth auth
+    ) {
+        var lesson = lessonService.updateByPut(lessonId, auth, dto);
+        return ResponseEntity.ok(lessonMapper.toDTO(lesson));
+    }
+
+    @PatchMapping("/{lessonId}/state")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<LessonDTO> patchLessonState(
+            @PathVariable Long lessonId,
+            @Valid @RequestBody UpdateLessonStateDTO dto,
+            @AuthenticationPrincipal Auth auth
+    ) {
+        var lesson = lessonService.updateState(lessonId, auth, dto);
+        return ResponseEntity.ok(lessonMapper.toDTO(lesson));
     }
 }
 

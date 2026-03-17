@@ -24,14 +24,18 @@ public class Lesson {
     Long id;
 
     @Column(nullable = false)
+    @Setter
     String name;
 
+    @Setter
     String description;
 
     @Column(nullable = false)
+    @Setter
     Instant beginAt;
 
     @Column(nullable = false)
+    @Setter
     Instant endsAt;
 
     @Setter
@@ -41,6 +45,7 @@ public class Lesson {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Setter
     LessonType type = LessonType.LECTURE;
 
     @ManyToOne(fetch = FetchType.LAZY)
