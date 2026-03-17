@@ -37,8 +37,9 @@ public class CourseController {
     EnrollmentMapper enrollmentMapper;
 
     @GetMapping
-    public ResponseEntity<List<CourseDTO>> get() {
-        List<CourseDTO> courseDTOS = courseService.findAllCourses().stream()
+    @PreAuthorize("hasAnyRole('GUEST', 'STUDENT', 'TEACHER', 'ADMIN')")
+    public ResponseEntity<List<CourseDTO>> get(@AuthenticationPrincipal Auth auth) {
+        List<CourseDTO> courseDTOS = courseService.findAllCourses(auth).stream()
                 .map(courseMapper::courseToDTO)
                 .toList();
         return ResponseEntity.ok(courseDTOS);
@@ -118,6 +119,26 @@ public class CourseController {
     ) {
         courseService.removeEditor(id, entity, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/publish")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<CourseDTO> publishCourse(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Auth entity
+    ) {
+        var course = courseService.publish(id, entity);
+        return ResponseEntity.ok(courseMapper.courseToDTO(course));
+    }
+
+    @PostMapping("/{id}/archive")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<CourseDTO> archiveCourse(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Auth entity
+    ) {
+        var course = courseService.archive(id, entity);
+        return ResponseEntity.ok(courseMapper.courseToDTO(course));
     }
 
     @PostMapping("/{id}/enroll")

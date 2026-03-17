@@ -116,19 +116,21 @@ unenroll - отмена записи субъекта на ресурс
 
 - `GET /v0/files/{id}` - зависит от `fileVisibility` attachment-а - `Сделано`
 - `PUBLIC` (например, аватар профиля) - `GUEST`, `STUDENT`, `TEACHER`, `ADMIN` - `Сделано`
-- `ENROLLED` (например, preview курса) - `ENROLLED`, `OWNER(course|lesson)`, `EDITOR(course)`, `ADMIN` - `Сделано`
+- `ENROLLED` (например, preview курса) - `ENROLLED`, `OWNER(course|lesson)`, `EDITOR(course)`, `ADMIN`; дополнительно зависит от `state` ресурса (`PUBLISHED`) - `Сделано`
 - `PRIVATE` - `OWNER(profile|course|lesson)`, `ADMIN` - `Сделано`
 - `GET /v0/files/{id}/meta` - `OWNER(file)`, `ADMIN` - `Сделано`
 - `DELETE /v0/files/{id}` - `OWNER(file)`, `ADMIN` - `Сделано`
 
 ### CourseController
 
-- `GET /v0/course` - `ANONYMOUS`, `GUEST`, `STUDENT`, `TEACHER`, `ADMIN` - `Сделано`
+- `GET /v0/course` - `GUEST`, `STUDENT`, `TEACHER`, `ADMIN`; в выдаче учитывается `state` (`PUBLISHED` для каталога, + персонально доступные курсы) - `Сделано`
 - `POST /v0/course` - `TEACHER`, `ADMIN` - `Сделано`
-- `GET /v0/course/id/{id}` - `ENROLLED`, `OWNER(course)`, `EDITOR(course)`, `ADMIN` - `сделано`
-- `GET /v0/course/handle/{handle}` - аналогично `GET /v0/course/id/{id}` - `сделано`
-- `POST /v0/course/{id}/preview` - `OWNER(course)`, `EDITOR(course)` , `ADMIN` - `Частично сделано`
+- `GET /v0/course/id/{id}` - `ENROLLED`, `OWNER(course)`, `EDITOR(course)`, `ADMIN`; дополнительно зависит от `state` (`DRAFT/ARCHIVED` недоступны не-управляющим) - `Сделано`
+- `GET /v0/course/handle/{handle}` - аналогично `GET /v0/course/id/{id}` - `Сделано`
+- `POST /v0/course/{id}/preview` - `OWNER(course)`, `EDITOR(course)` , `ADMIN`; visibility preview синхронизируется с `state` - `Сделано`
 - `DELETE /v0/course/{id}` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `POST /v0/course/{id}/publish` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `POST /v0/course/{id}/archive` - `OWNER(course)`, `ADMIN` - `Сделано`
 
 ### LessonController
 
@@ -165,8 +167,6 @@ unenroll - отмена записи субъекта на ресурс
 - `GET /v0/course/{id}/teachers` - `OWNER(course)`, `ADMIN` - `Нет в доменной модели`
 - `POST /v0/course/{id}/teachers` - `OWNER(course)`, `ADMIN` - `Нет в доменной модели`
 - `DELETE /v0/course/{id}/teachers/{teacherId}` - `OWNER(course)`, `ADMIN` - `Нет в доменной модели`
-- `POST /v0/course/{id}/publish` - `OWNER(course)`, `ADMIN` - `Не сделано`
-- `POST /v0/course/{id}/archive` - `OWNER(course)`, `ADMIN` - `Не сделано`
 
 ### Course enrollment
 

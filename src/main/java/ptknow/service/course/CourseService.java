@@ -10,13 +10,16 @@ import ptknow.dto.course.CreateCourseDTO;
 import ptknow.model.auth.Auth;
 import ptknow.model.auth.Role;
 import ptknow.model.course.Course;
+import ptknow.model.course.CourseState;
 import ptknow.model.course.CourseTag;
 import ptknow.model.file.File;
+import ptknow.model.file.attachment.FileAttachment;
 import ptknow.model.file.attachment.resource.ResourceType;
 import ptknow.model.lesson.Lesson;
 import ptknow.model.file.attachment.FileVisibility;
 import ptknow.model.file.attachment.resource.Purpose;
 import ptknow.exception.course.*;
+import ptknow.exception.file.FileAttachmentNotFoundException;
 import ptknow.exception.user.UserNotFoundException;
 import ptknow.generator.handle.HandleGenerator;
 import ptknow.repository.auth.AuthRepository;
@@ -69,6 +72,7 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
                 .handle(handle)
                 .preview(previewFile)
                 .owner(initiator)
+                .state(CourseState.DRAFT)
                 .build();
 
         initiator.addOwnedCourse(entity);
@@ -81,7 +85,7 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
                     ResourceType.COURSE,
                     entity.getId().toString(),
                     Purpose.PREVIEW,
-                    FileVisibility.ENROLLED,
+                    previewVisibilityFor(entity.getState()),
                     entity.getOwner()
             );
         }
@@ -190,7 +194,7 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
                 ResourceType.COURSE,
                 course.getId().toString(),
                 Purpose.PREVIEW,
-                FileVisibility.ENROLLED,
+                previewVisibilityFor(course.getState()),
                 course.getOwner()
         );
 
@@ -203,8 +207,18 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
     }
 
     @Transactional(readOnly = true)
-    public List<Course> findAllCourses() {
-        return repository.findAll();
+    public List<Course> findAllCourses(Auth viewer) {
+        if (viewer == null) {
+            return repository.findAllByState(CourseState.PUBLISHED);
+        }
+
+        if (viewer.getRole() == Role.ADMIN) {
+            return repository.findAll();
+        }
+
+        return repository.findAll().stream()
+                .filter(course -> course.getState() == CourseState.PUBLISHED || accessService.canSee(course, viewer))
+                .toList();
     }
 
     @Override
@@ -268,9 +282,66 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
         return repository.save(course);
     }
 
+    @Transactional
+    public Course publish(Long courseId, Auth initiator) {
+        Course course = findCourseById(courseId);
+        validateCanChangeCourseState(course, initiator);
+
+        course.setState(CourseState.PUBLISHED);
+        syncPreviewVisibility(course);
+        return repository.save(course);
+    }
+
+    @Transactional
+    public Course archive(Long courseId, Auth initiator) {
+        Course course = findCourseById(courseId);
+        validateCanChangeCourseState(course, initiator);
+
+        course.setState(CourseState.ARCHIVED);
+        syncPreviewVisibility(course);
+        return repository.save(course);
+    }
+
     @Override
     public boolean canSee(Long id, Auth initiator) {
         return accessService.canSee(id, initiator);
+    }
+
+    private void validateCanChangeCourseState(Course course, Auth initiator) {
+        if (initiator.getRole() != Role.ADMIN && !course.getOwner().equals(initiator)) {
+            throw new CourseNotOwnedByUserException(initiator.getId());
+        }
+    }
+
+    private void syncPreviewVisibility(Course course) {
+        File preview = course.getPreview();
+        if (preview == null) {
+            return;
+        }
+
+        FileVisibility visibility = previewVisibilityFor(course.getState());
+        try {
+            FileAttachment attachment = fileAttachmentService.findByFileAndResourceAndPurpose(
+                    preview.getId(),
+                    ResourceType.COURSE,
+                    course.getId().toString(),
+                    Purpose.PREVIEW
+            );
+            attachment.setFileVisibility(visibility);
+        } catch (FileAttachmentNotFoundException e) {
+            fileAttachmentService.attach(
+                    preview,
+                    ResourceType.COURSE,
+                    course.getId().toString(),
+                    Purpose.PREVIEW,
+                    visibility,
+                    course.getOwner()
+            );
+        }
+    }
+
+    private FileVisibility previewVisibilityFor(CourseState state) {
+        return state == CourseState.PUBLISHED ? FileVisibility.ENROLLED : FileVisibility.PRIVATE;
     }
 }
 

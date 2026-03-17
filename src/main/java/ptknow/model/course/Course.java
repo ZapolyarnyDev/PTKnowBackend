@@ -77,6 +77,13 @@ public class Course {
     @Builder.Default
     int maxUsersAmount = 10;
 
+    @Setter
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Getter
+    @Builder.Default
+    CourseState state = CourseState.DRAFT;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "preview_id")
     @Getter
@@ -92,6 +99,8 @@ public class Course {
             throw new InvalidCredentialsException("Course handle can't be null or blank");
         if(maxUsersAmount <= 0)
             throw new InvalidCredentialsException("Course must be open to at least 1 person");
+        if(state == null)
+            state = CourseState.DRAFT;
     }
 
     public Set<Lesson> getLessons() {

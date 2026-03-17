@@ -10,6 +10,7 @@ import ptknow.exception.course.NotAllowedToSeeCourseInfoException;
 import ptknow.model.auth.Auth;
 import ptknow.model.auth.Role;
 import ptknow.model.course.Course;
+import ptknow.model.course.CourseState;
 import ptknow.repository.course.CourseRepository;
 import ptknow.repository.enrollment.EnrollmentRepository;
 
@@ -46,10 +47,25 @@ public class CourseAccessService {
     }
 
     public boolean canSee(Course course, Auth auth) {
+        if (auth == null)
+            return course.getState() == CourseState.PUBLISHED;
+
+        if (canManage(course, auth))
+            return true;
+
+        if (course.getState() != CourseState.PUBLISHED)
+            return false;
+
+        return enrollmentRepository.existsByUser_IdAndCourse_Id(auth.getId(), course.getId());
+    }
+
+    public boolean canManage(Course course, Auth auth) {
+        if (auth == null)
+            return false;
+
         return auth.getRole() == Role.ADMIN ||
                 course.getOwner().equals(auth) ||
-                course.hasEditor(auth) ||
-                enrollmentRepository.existsByUser_IdAndCourse_Id(auth.getId(), course.getId());
+                course.hasEditor(auth);
     }
 
     private Course findCourseByHandle(String handle) {
