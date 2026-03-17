@@ -33,3 +33,5 @@ security:
     key: ${SECRET_JWT_KEY}
     access-token-expiration: PT15M
     refresh-token-expiration: P7D
+    refresh-cookie-secure: ${JWT_REFRESH_COOKIE_SECURE:false}
+    refresh-cookie-same-site: ${JWT_REFRESH_COOKIE_SAME_SITE:Lax}

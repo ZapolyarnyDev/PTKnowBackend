@@ -56,7 +56,7 @@ public class AuthController {
     public ResponseEntity<?> logout(@AuthenticationPrincipal Auth user) {
         jwtService.invalidateUserTokens(user);
 
-        ResponseCookie cookie = jwtService.tokenToCookie("/v0/token/refresh", "");
+        ResponseCookie cookie = jwtService.deleteRefreshCookie("/v0/token/refresh");
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())

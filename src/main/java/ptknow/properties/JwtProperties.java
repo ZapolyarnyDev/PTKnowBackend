@@ -31,6 +31,12 @@ public class JwtProperties {
     @NotNull
     Duration refreshTokenExpiration = Duration.ofDays(7);
 
+    @NotNull
+    Boolean refreshCookieSecure = false;
+
+    @NotBlank
+    String refreshCookieSameSite = "Lax";
+
     public Instant getAccessTokenExpiryInstant() {
         return Instant.now().plus(accessTokenExpiration);
     }

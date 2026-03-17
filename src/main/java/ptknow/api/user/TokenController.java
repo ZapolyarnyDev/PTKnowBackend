@@ -1,7 +1,5 @@
 package ptknow.api.user;
 
-import ptknow.jwt.JwtTokens;
-import ptknow.service.auth.JwtService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -12,6 +10,8 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ptknow.jwt.JwtTokens;
+import ptknow.service.auth.JwtService;
 
 @RestController
 @RequestMapping("/v0/token")
@@ -23,7 +23,8 @@ public class TokenController {
 
     @PostMapping("/refresh")
     public ResponseEntity<String> refresh(
-            @CookieValue("refreshToken") @NotBlank(message = "Отсутствует refresh token") String refreshToken) {
+            @CookieValue("refreshToken") @NotBlank(message = "Refresh token is required") String refreshToken
+    ) {
         JwtTokens tokens = jwtService.refresh(refreshToken);
 
         ResponseCookie cookie = jwtService.tokenToCookie("/v0/token/refresh", tokens.refreshToken());
@@ -33,4 +34,3 @@ public class TokenController {
                 .body(tokens.accessToken());
     }
 }
-
