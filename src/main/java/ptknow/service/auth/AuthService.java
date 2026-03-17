@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +55,9 @@ public class AuthService implements UserDetailsService {
     @Transactional
     public Auth authenticate(String email, String password) {
         var entity = loadUserByUsername(email);
+
+        if (!entity.isEnabled())
+            throw new AccessDeniedException("User account is blocked");
 
         if(!passwordEncoder.matches(password, entity.getPassword()))
             throw new InvalidCredentialsException("Invalid email or password");

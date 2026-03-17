@@ -41,8 +41,15 @@ public class Auth implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     @Getter
+    @Setter
     @Column(nullable = false)
     Role role;
+
+    @Enumerated(EnumType.STRING)
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    UserStatus status;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false)
@@ -95,6 +102,8 @@ public class Auth implements UserDetails {
 
         if(role == null)
             role = Role.GUEST;
+        if(status == null)
+            status = UserStatus.ACTIVE;
 
         checkProvidingCredentials();
     }
@@ -129,7 +138,7 @@ public class Auth implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return status != UserStatus.BLOCKED;
     }
 
     @Override
@@ -139,7 +148,7 @@ public class Auth implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return status == UserStatus.ACTIVE;
     }
 
     public Set<FileAttachment> getFileAttachments() {

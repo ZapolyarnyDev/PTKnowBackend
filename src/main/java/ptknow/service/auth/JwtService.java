@@ -17,6 +17,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,6 +80,8 @@ public class JwtService {
 
         if(!isValid(entity))
             throw new InvalidTokenException(refreshToken);
+        if (!entity.getUser().isEnabled())
+            throw new AccessDeniedException("User account is blocked");
 
         entity.setValid(false);
         log.info("Токен {} инвалидирован. ID: {}", entity.getToken(), entity.getId());

@@ -55,6 +55,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             String email = jwt.getSubject();
             Auth entity = authService.loadUserByUsername(email);
+            if (!entity.isEnabled()) {
+                throw new BadCredentialsException("User account is blocked");
+            }
 
             var authentication = new UsernamePasswordAuthenticationToken(
                     entity,

@@ -48,7 +48,7 @@
 - `STUDENT -> GUEST` и `TEACHER -> GUEST` при отзыве подтверждения
 - `ADMIN` назначается только вручную и вне публичного self-service процесса
 
-Отдельно нужно реализовать:
+Реализовано в текущей версии:
 
 - endpoint или admin-flow изменения роли
 - аудит изменения ролей
@@ -141,6 +141,13 @@ unenroll - отмена записи субъекта на ресурс
 - `POST /v0/lessons/{lessonId}/materials` - `OWNER(lesson)`, `ADMIN` - `сделано`
 - `DELETE /v0/lessons/{lessonId}/materials/{fileId}` - `OWNER(lesson)`, `ADMIN` - `сделано`
 
+### UserAdminController
+
+- `GET /v0/users` - `ADMIN` - `Сделано`
+- `GET /v0/users/{id}` - `ADMIN` - `Сделано`
+- `PATCH /v0/users/{id}/role` - `ADMIN`; самоназначение роли запрещено - `Сделано`
+- `PATCH /v0/users/{id}/status` - `ADMIN`; self-block запрещен - `Сделано`
+
 ## Матрица доступа: потенциально необходимые endpoint-ы
 
 Ниже перечислены endpoint-ы, которых сейчас нет в коде, но они логично потребуются для нормального CRUD и платформенной модели допобразования.
@@ -148,10 +155,6 @@ unenroll - отмена записи субъекта на ресурс
 ### Auth and role management
 
 - `GET /v0/auth/me` - любой аутентифицированный пользователь - `Не сделано`
-- `PATCH /v0/users/{id}/role` - `ADMIN` - `Не сделано`
-- `PATCH /v0/users/{id}/status` - `ADMIN` - `Не сделано`
-- `GET /v0/users/{id}` - `ADMIN` - `Не сделано`
-- `GET /v0/users` - `ADMIN` - `Не сделано`
 
 ### Profile CRUD and moderation
 
