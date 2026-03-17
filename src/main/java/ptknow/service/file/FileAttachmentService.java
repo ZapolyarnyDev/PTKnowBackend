@@ -22,6 +22,7 @@ import ptknow.repository.file.FileAttachmentRepository;
 import ptknow.repository.lesson.LessonRepository;
 import ptknow.repository.profile.ProfileRepository;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -63,12 +64,31 @@ public class FileAttachmentService {
 
     @Transactional
     public void deleteAllByFileId(UUID fileId) {
-        attachmentRepository.deleteByFile_Id(fileId);
+        Set<FileAttachment> attachments = attachmentRepository.findAllByFile_Id(fileId);
+        attachments.forEach(attachment -> attachment.getOwner().removeFileAttachment(attachment));
+        attachmentRepository.deleteAllInBatch(attachments);
     }
 
     @Transactional(readOnly = true)
     public Set<FileAttachment> findAllByResource(ResourceType resourceType, String resourceId) {
         return attachmentRepository.findAllByResourceTypeAndResourceId(resourceType, resourceId);
+    }
+
+    @Transactional
+    public Set<UUID> deleteAllByResource(ResourceType resourceType, String resourceId) {
+        Set<FileAttachment> attachments = attachmentRepository.findAllByResourceTypeAndResourceId(resourceType, resourceId);
+        if (attachments.isEmpty()) {
+            return Set.of();
+        }
+
+        Set<UUID> fileIds = new LinkedHashSet<>();
+        for (FileAttachment attachment : attachments) {
+            fileIds.add(attachment.getFile().getId());
+            attachment.getOwner().removeFileAttachment(attachment);
+        }
+
+        attachmentRepository.deleteAllInBatch(attachments);
+        return fileIds;
     }
 
     @Transactional(readOnly = true)

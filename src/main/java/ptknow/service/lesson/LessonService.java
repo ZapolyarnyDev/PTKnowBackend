@@ -169,12 +169,8 @@ public class LessonService implements OwnershipService<Long>, AccessService<Long
     }
 
     private void cleanupLessonFiles(Long lessonId) throws IOException {
-        var attachments = fileAttachmentService.findAllByResource(ResourceType.LESSON, lessonId.toString());
-
-        for (var attachment : attachments) {
-            UUID fileId = attachment.getFile().getId();
-            fileAttachmentService.delete(attachment);
-
+        var fileIds = fileAttachmentService.deleteAllByResource(ResourceType.LESSON, lessonId.toString());
+        for (UUID fileId : fileIds) {
             if (!fileAttachmentService.hasAttachments(fileId)) {
                 fileService.deleteFile(fileId);
             }

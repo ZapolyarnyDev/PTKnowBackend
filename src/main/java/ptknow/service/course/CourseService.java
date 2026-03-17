@@ -12,9 +12,10 @@ import ptknow.model.auth.Role;
 import ptknow.model.course.Course;
 import ptknow.model.course.CourseTag;
 import ptknow.model.file.File;
+import ptknow.model.file.attachment.resource.ResourceType;
+import ptknow.model.lesson.Lesson;
 import ptknow.model.file.attachment.FileVisibility;
 import ptknow.model.file.attachment.resource.Purpose;
-import ptknow.model.file.attachment.resource.ResourceType;
 import ptknow.exception.course.*;
 import ptknow.exception.user.UserNotFoundException;
 import ptknow.generator.handle.HandleGenerator;
@@ -28,6 +29,7 @@ import ptknow.service.file.FileAttachmentService;
 import ptknow.service.file.FileService;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -107,15 +109,43 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
         return entity;
     }
 
-    @Transactional
-    public void deleteCourseById(Long courseId, Auth initiator) {
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteCourseById(Long courseId, Auth initiator) throws IOException {
         var course = findCourseById(courseId);
 
         if(initiator.getRole() != Role.ADMIN && !course.getOwner().equals(initiator))
             throw new CourseNotOwnedByUserException(initiator.getId());
 
-        Set<CourseTag> tags = course.getCourseTags();
+        Set<CourseTag> tags = new HashSet<>(course.getCourseTags());
+        Set<Long> lessonIds = course.getLessons().stream()
+                .map(Lesson::getId)
+                .collect(Collectors.toSet());
+
+        Set<UUID> fileIdsToDelete = new HashSet<>();
+
+        if (course.getPreview() != null) {
+            fileIdsToDelete.add(course.getPreview().getId());
+            course.setPreview(null);
+            repository.save(course);
+        }
+
+        fileIdsToDelete.addAll(
+                fileAttachmentService.deleteAllByResource(ResourceType.COURSE, courseId.toString())
+        );
+
+        for (Long lessonId : lessonIds) {
+            fileIdsToDelete.addAll(
+                    fileAttachmentService.deleteAllByResource(ResourceType.LESSON, lessonId.toString())
+            );
+        }
+
         repository.delete(course);
+
+        for (UUID fileId : fileIdsToDelete) {
+            if (!fileAttachmentService.hasAttachments(fileId)) {
+                fileService.deleteFile(fileId);
+            }
+        }
 
         for (CourseTag tag : tags) {
             if (repository.countByCourseTagsContains(tag) == 0) {

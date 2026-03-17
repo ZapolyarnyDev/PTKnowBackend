@@ -93,7 +93,7 @@ public class CourseController {
     public ResponseEntity<Void> deleteCourse(
             @PathVariable Long id,
             @AuthenticationPrincipal Auth entity
-            ) {
+            ) throws IOException {
         courseService.deleteCourseById(id, entity);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
