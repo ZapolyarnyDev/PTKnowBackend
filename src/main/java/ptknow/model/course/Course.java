@@ -31,9 +31,11 @@ public class Course {
 
     @Column(unique = true, nullable = false)
     @Getter
+    @Setter
     String name;
 
     @Getter
+    @Setter
     String description;
 
     @Getter
@@ -109,6 +111,11 @@ public class Course {
 
     public Set<CourseTag> getCourseTags() {
         return Collections.unmodifiableSet(courseTags);
+    }
+
+    public void replaceCourseTags(Set<CourseTag> tags) {
+        this.courseTags.clear();
+        this.courseTags.addAll(tags);
     }
 
     public boolean hasEditor(Auth e) {

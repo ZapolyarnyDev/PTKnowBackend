@@ -129,6 +129,8 @@ unenroll - отмена записи субъекта на ресурс
 
 - `GET /v0/course` - `GUEST`, `STUDENT`, `TEACHER`, `ADMIN`; в выдаче учитывается `state` (`PUBLISHED` для каталога, + персонально доступные курсы) - `Сделано`
 - `POST /v0/course` - `TEACHER`, `ADMIN` - `Сделано`
+- `PATCH /v0/course/{id}` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `PUT /v0/course/{id}` - `OWNER(course)`, `ADMIN` - `Сделано`
 - `GET /v0/course/id/{id}` - `ENROLLED`, `OWNER(course)`, `EDITOR(course)`, `ADMIN`; дополнительно зависит от `state` (`DRAFT/ARCHIVED` недоступны не-управляющим) - `Сделано`
 - `GET /v0/course/handle/{handle}` - аналогично `GET /v0/course/id/{id}` - `Сделано`
 - `POST /v0/course/{id}/preview` - `OWNER(course)`, `EDITOR(course)` , `ADMIN`; visibility preview синхронизируется с `state` - `Сделано`
@@ -163,8 +165,6 @@ unenroll - отмена записи субъекта на ресурс
 
 ### Course CRUD
 
-- `PATCH /v0/course/{id}` - `OWNER(course)`, `ADMIN` - `Нет в доменной модели`
-- `PUT /v0/course/{id}` - `OWNER(course)`, `ADMIN` - `Нет в доменной модели`
 - `GET /v0/course/{id}/students` - `OWNER(course)`, `ADMIN` - `Нет в доменной модели`
 - `GET /v0/course/{id}/teachers` - `OWNER(course)`, `ADMIN` - `Нет в доменной модели`
 - `POST /v0/course/{id}/teachers` - `OWNER(course)`, `ADMIN` - `Нет в доменной модели`

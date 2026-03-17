@@ -4,6 +4,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import ptknow.dto.course.CourseDTO;
 import ptknow.dto.course.CreateCourseDTO;
+import ptknow.dto.course.UpdateCourseDTO;
 import ptknow.dto.enrollment.EnrollmentDTO;
 import ptknow.mapper.enrollment.EnrollmentMapper;
 import ptknow.model.auth.Auth;
@@ -138,6 +139,28 @@ public class CourseController {
             @AuthenticationPrincipal Auth entity
     ) {
         var course = courseService.archive(id, entity);
+        return ResponseEntity.ok(courseMapper.courseToDTO(course));
+    }
+
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<CourseDTO> patchCourse(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateCourseDTO dto,
+            @AuthenticationPrincipal Auth entity
+    ) {
+        Course course = courseService.updateByPatch(id, entity, dto);
+        return ResponseEntity.ok(courseMapper.courseToDTO(course));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<CourseDTO> putCourse(
+            @PathVariable Long id,
+            @Valid @RequestBody CreateCourseDTO dto,
+            @AuthenticationPrincipal Auth entity
+    ) {
+        Course course = courseService.updateByPut(id, entity, dto);
         return ResponseEntity.ok(courseMapper.courseToDTO(course));
     }
 

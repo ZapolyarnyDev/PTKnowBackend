@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ptknow.dto.course.CreateCourseDTO;
+import ptknow.dto.course.UpdateCourseDTO;
 import ptknow.model.auth.Auth;
 import ptknow.model.auth.Role;
 import ptknow.model.course.Course;
@@ -302,6 +303,52 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
         return repository.save(course);
     }
 
+    @Transactional
+    public Course updateByPatch(Long courseId, Auth initiator, UpdateCourseDTO dto) {
+        Course course = findCourseById(courseId);
+        validateCanChangeCourseState(course, initiator);
+
+        Set<CourseTag> previousTags = new HashSet<>(course.getCourseTags());
+
+        if (dto.name() != null) {
+            validateCourseNameIsAvailable(course, dto.name());
+            course.setName(dto.name());
+        }
+
+        if (dto.description() != null) {
+            course.setDescription(dto.description());
+        }
+
+        if (dto.tags() != null) {
+            course.replaceCourseTags(courseTagsFromNames(dto.tags()));
+        }
+
+        if (dto.maxUsersAmount() != null) {
+            course.setMaxUsersAmount(dto.maxUsersAmount());
+        }
+
+        Course saved = repository.save(course);
+        cleanupUnusedTags(previousTags);
+        return saved;
+    }
+
+    @Transactional
+    public Course updateByPut(Long courseId, Auth initiator, CreateCourseDTO dto) {
+        Course course = findCourseById(courseId);
+        validateCanChangeCourseState(course, initiator);
+
+        Set<CourseTag> previousTags = new HashSet<>(course.getCourseTags());
+
+        validateCourseNameIsAvailable(course, dto.name());
+        course.setName(dto.name());
+        course.setDescription(dto.description());
+        course.replaceCourseTags(courseTagsFromNames(dto.tags()));
+
+        Course saved = repository.save(course);
+        cleanupUnusedTags(previousTags);
+        return saved;
+    }
+
     @Override
     public boolean canSee(Long id, Auth initiator) {
         return accessService.canSee(id, initiator);
@@ -342,6 +389,24 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
 
     private FileVisibility previewVisibilityFor(CourseState state) {
         return state == CourseState.PUBLISHED ? FileVisibility.ENROLLED : FileVisibility.PRIVATE;
+    }
+
+    private void validateCourseNameIsAvailable(Course course, String newName) {
+        if (newName.equals(course.getName())) {
+            return;
+        }
+
+        if (repository.existsByName(newName)) {
+            throw new CourseAlreadyExists(newName);
+        }
+    }
+
+    private void cleanupUnusedTags(Set<CourseTag> previousTags) {
+        for (CourseTag tag : previousTags) {
+            if (repository.countByCourseTagsContains(tag) == 0) {
+                courseTagRepository.delete(tag);
+            }
+        }
     }
 }
 
