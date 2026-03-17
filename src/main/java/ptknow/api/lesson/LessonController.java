@@ -14,8 +14,11 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/v0/lessons")
@@ -63,9 +66,31 @@ public class LessonController {
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<Void> deleteLesson(
             @PathVariable Long lessonId,
-            @AuthenticationPrincipal Auth auth) {
+            @AuthenticationPrincipal Auth auth) throws IOException {
         lessonService.deleteById(lessonId, auth);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/{lessonId}/materials")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<UUID> uploadMaterial(
+            @PathVariable Long lessonId,
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal Auth auth
+    ) throws IOException {
+        UUID materialId = lessonService.uploadMaterial(lessonId, auth, file);
+        return ResponseEntity.status(HttpStatus.CREATED).body(materialId);
+    }
+
+    @DeleteMapping("/{lessonId}/materials/{fileId}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<Void> deleteMaterial(
+            @PathVariable Long lessonId,
+            @PathVariable UUID fileId,
+            @AuthenticationPrincipal Auth auth
+    ) throws IOException {
+        lessonService.deleteMaterial(lessonId, fileId, auth);
+        return ResponseEntity.noContent().build();
     }
 }
 

@@ -30,10 +30,7 @@ public class FileAccessService implements OwnershipService<Long> {
 
     @Transactional(readOnly = true)
     public boolean canRead(UUID fileId, Auth user) {
-        Set<FileAttachment> attachments = attachmentRepository.findAllByFile_Id(fileId);
-
-        if(attachments.isEmpty())
-            throw new FileAttachmentNotFoundException(fileId);
+        Set<FileAttachment> attachments = findAllByFileIdOrThrow(fileId);
 
         if(user.getRole() == Role.ADMIN)
             return true;
@@ -46,11 +43,17 @@ public class FileAccessService implements OwnershipService<Long> {
         if (user.getRole() == Role.ADMIN)
             return true;
 
-        Set<FileAttachment> attachments = attachmentRepository.findAllByFile_Id(fileId);
-        if (attachments.isEmpty())
-            return false;
+        Set<FileAttachment> attachments = findAllByFileIdOrThrow(fileId);
 
         return attachments.stream().allMatch(attachment -> attachment.getOwner().equals(user));
+    }
+
+    private Set<FileAttachment> findAllByFileIdOrThrow(UUID fileId) {
+        Set<FileAttachment> attachments = attachmentRepository.findAllByFile_Id(fileId);
+        if (attachments.isEmpty()) {
+            throw new FileAttachmentNotFoundException(fileId);
+        }
+        return attachments;
     }
 
     private boolean canRead(FileAttachment attachment, Auth user) {

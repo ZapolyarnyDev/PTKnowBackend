@@ -7,6 +7,10 @@ import ptknow.exception.lesson.NotAllowedToSeeLessonInfo;
 import ptknow.model.auth.Auth;
 import ptknow.model.auth.Role;
 import ptknow.model.course.Course;
+import ptknow.model.file.File;
+import ptknow.model.file.attachment.FileVisibility;
+import ptknow.model.file.attachment.resource.Purpose;
+import ptknow.model.file.attachment.resource.ResourceType;
 import ptknow.model.lesson.Lesson;
 import ptknow.exception.lesson.LessonNotFoundException;
 import ptknow.repository.lesson.LessonRepository;
@@ -14,13 +18,18 @@ import ptknow.service.AccessService;
 import ptknow.service.OwnershipService;
 import ptknow.service.course.CourseAccessService;
 import ptknow.service.course.CourseService;
+import ptknow.service.file.FileAttachmentService;
+import ptknow.service.file.FileService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +39,8 @@ public class LessonService implements OwnershipService<Long>, AccessService<Long
     LessonRepository lessonRepository;
     CourseService courseService;
     CourseAccessService accessService;
+    FileService fileService;
+    FileAttachmentService fileAttachmentService;
 
     @Transactional
     public Lesson createLesson(Long courseId, Auth initiator, CreateLessonDTO dto) throws LessonCannotBeCreatedException {
@@ -82,14 +93,51 @@ public class LessonService implements OwnershipService<Long>, AccessService<Long
         return lessonRepository.getAllByCourse_Id(courseId);
     }
 
-    @Transactional
-    public void deleteById(Long id, Auth initiator) throws LessonNotOwnedException {
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteById(Long id, Auth initiator) throws LessonNotOwnedException, IOException {
         Lesson lesson = findById(id);
 
         if (!canDelete(lesson, initiator))
             throw new LessonNotOwnedException(initiator.getId());
 
+        cleanupLessonFiles(id);
         lessonRepository.delete(lesson);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public UUID uploadMaterial(Long lessonId, Auth initiator, MultipartFile material) throws IOException {
+        Lesson lesson = findById(lessonId);
+        validateCanManageMaterials(lesson, initiator);
+
+        File savedFile = fileService.saveFile(material);
+        fileAttachmentService.attach(
+                savedFile,
+                ResourceType.LESSON,
+                lessonId.toString(),
+                Purpose.MATERIAL,
+                FileVisibility.ENROLLED,
+                lesson.getOwner()
+        );
+
+        return savedFile.getId();
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteMaterial(Long lessonId, UUID fileId, Auth initiator) throws IOException {
+        Lesson lesson = findById(lessonId);
+        validateCanManageMaterials(lesson, initiator);
+
+        var attachment = fileAttachmentService.findByFileAndResourceAndPurpose(
+                fileId,
+                ResourceType.LESSON,
+                lessonId.toString(),
+                Purpose.MATERIAL
+        );
+
+        fileAttachmentService.delete(attachment);
+        if (!fileAttachmentService.hasAttachments(fileId)) {
+            fileService.deleteFile(fileId);
+        }
     }
 
     @Override
@@ -112,6 +160,25 @@ public class LessonService implements OwnershipService<Long>, AccessService<Long
         return auth.getRole() == Role.ADMIN ||
                 lesson.getOwner().equals(auth) ||
                 lesson.getCourse().getOwner().equals(auth);
+    }
+
+    private void validateCanManageMaterials(Lesson lesson, Auth initiator) {
+        if (initiator.getRole() != Role.ADMIN && !lesson.getOwner().equals(initiator)) {
+            throw new LessonNotOwnedException(initiator.getId());
+        }
+    }
+
+    private void cleanupLessonFiles(Long lessonId) throws IOException {
+        var attachments = fileAttachmentService.findAllByResource(ResourceType.LESSON, lessonId.toString());
+
+        for (var attachment : attachments) {
+            UUID fileId = attachment.getFile().getId();
+            fileAttachmentService.delete(attachment);
+
+            if (!fileAttachmentService.hasAttachments(fileId)) {
+                fileService.deleteFile(fileId);
+            }
+        }
     }
 
     @Override

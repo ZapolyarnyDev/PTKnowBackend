@@ -25,6 +25,7 @@ public interface FileAttachmentRepository extends JpaRepository<FileAttachment, 
     Set<FileAttachment> findAllByOwner_Id(UUID ownerId);
 
     boolean existsByIdAndOwner_Id(Long id, UUID ownerId);
+    long countByFile_Id(UUID fileId);
 
     void deleteByFile_Id(UUID fileId);
 }

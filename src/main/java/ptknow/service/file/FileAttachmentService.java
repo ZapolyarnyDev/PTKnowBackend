@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ptknow.exception.course.CourseNotFoundException;
 import ptknow.exception.file.FileAccessDeniedException;
+import ptknow.exception.file.FileAttachmentNotFoundException;
 import ptknow.exception.file.InvalidResourceIdException;
 import ptknow.exception.lesson.LessonNotFoundException;
 import ptknow.exception.profile.ProfileNotFoundException;
@@ -21,6 +22,7 @@ import ptknow.repository.file.FileAttachmentRepository;
 import ptknow.repository.lesson.LessonRepository;
 import ptknow.repository.profile.ProfileRepository;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -62,6 +64,38 @@ public class FileAttachmentService {
     @Transactional
     public void deleteAllByFileId(UUID fileId) {
         attachmentRepository.deleteByFile_Id(fileId);
+    }
+
+    @Transactional(readOnly = true)
+    public Set<FileAttachment> findAllByResource(ResourceType resourceType, String resourceId) {
+        return attachmentRepository.findAllByResourceTypeAndResourceId(resourceType, resourceId);
+    }
+
+    @Transactional(readOnly = true)
+    public FileAttachment findByFileAndResourceAndPurpose(
+            UUID fileId,
+            ResourceType resourceType,
+            String resourceId,
+            Purpose purpose
+    ) {
+        return attachmentRepository.findByFile_IdAndResourceTypeAndResourceIdAndPurpose(
+                        fileId,
+                        resourceType,
+                        resourceId,
+                        purpose
+                )
+                .orElseThrow(() -> new FileAttachmentNotFoundException(resourceType, resourceId));
+    }
+
+    @Transactional(readOnly = true)
+    public boolean hasAttachments(UUID fileId) {
+        return attachmentRepository.countByFile_Id(fileId) > 0;
+    }
+
+    @Transactional
+    public void delete(FileAttachment attachment) {
+        attachment.getOwner().removeFileAttachment(attachment);
+        attachmentRepository.delete(attachment);
     }
 
     private Auth resolveResourceOwner(ResourceType resourceType, String resourceId) {

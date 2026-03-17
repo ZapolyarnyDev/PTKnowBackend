@@ -114,10 +114,12 @@ unenroll - отмена записи субъекта на ресурс
 
 ### FileController
 
-- `GET /v0/files/{id}` - зависит от типа файла - `Нет в доменной модели`
-- аватар публичного профиля - `GUEST`, `STUDENT`, `TEACHER`, `ADMIN` - `Не сделано`
-- preview курса - `OWNER(course)`, `ADMIN` или иные правила публичности курса - `Нет в доменной модели`
-- приватный файл урока или курса - участники курса, `OWNER(course|lesson)`, `ADMIN` - `Нет в доменной модели`
+- `GET /v0/files/{id}` - зависит от `fileVisibility` attachment-а - `Сделано`
+- `PUBLIC` (например, аватар профиля) - `GUEST`, `STUDENT`, `TEACHER`, `ADMIN` - `Сделано`
+- `ENROLLED` (например, preview курса) - `ENROLLED`, `OWNER(course|lesson)`, `EDITOR(course)`, `ADMIN` - `Сделано`
+- `PRIVATE` - `OWNER(profile|course|lesson)`, `ADMIN` - `Сделано`
+- `GET /v0/files/{id}/meta` - `OWNER(file)`, `ADMIN` - `Сделано`
+- `DELETE /v0/files/{id}` - `OWNER(file)`, `ADMIN` - `Сделано`
 
 ### CourseController
 
@@ -134,6 +136,8 @@ unenroll - отмена записи субъекта на ресурс
 - `GET /v0/lessons/{lessonId}` - `OWNER(course)`, `EDITOR(course)`, `ENROLLED`, `ADMIN` - `сделано`
 - `GET /v0/lessons/course/{courseId}` - `OWNER(course)`, `EDITOR(course)`, `ENROLLED`, `ADMIN` - `сделано`
 - `DELETE /v0/lessons/{lessonId}` - `OWNER(lesson)`, `OWNER(course)`, `ADMIN` - `сделано`
+- `POST /v0/lessons/{lessonId}/materials` - `OWNER(lesson)`, `ADMIN` - `сделано`
+- `DELETE /v0/lessons/{lessonId}/materials/{fileId}` - `OWNER(lesson)`, `ADMIN` - `сделано`
 
 ## Матрица доступа: потенциально необходимые endpoint-ы
 
@@ -175,13 +179,10 @@ unenroll - отмена записи субъекта на ресурс
 - `PATCH /v0/lessons/{lessonId}` - `OWNER(lesson)`, `ADMIN` - `Нет в доменной модели`
 - `PUT /v0/lessons/{lessonId}` - `OWNER(lesson)`, `ADMIN` - `Нет в доменной модели`
 - `PATCH /v0/lessons/{lessonId}/state` - `OWNER(lesson)`, `ADMIN` - `Не сделано`
-- `POST /v0/lessons/{lessonId}/materials` - `OWNER(lesson)`, `ADMIN` - `Нет в доменной модели`
-- `DELETE /v0/lessons/{lessonId}/materials/{fileId}` - `OWNER(lesson)`, `ADMIN` - `Нет в доменной модели`
 
 ### File management
 
-- `DELETE /v0/files/{id}` - `OWNER(file)`, `ADMIN` - `Нет в доменной модели`
-- `GET /v0/files/{id}/meta` - `OWNER(file)`, `ADMIN` - `Нет в доменной модели`
+- дополнительных endpoint-ов пока не выделено
 
 
 ## Приоритет внедрения
