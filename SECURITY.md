@@ -137,6 +137,10 @@ unenroll - отмена записи субъекта на ресурс
 - `DELETE /v0/course/{id}` - `OWNER(course)`, `ADMIN` - `Сделано`
 - `POST /v0/course/{id}/publish` - `OWNER(course)`, `ADMIN` - `Сделано`
 - `POST /v0/course/{id}/archive` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `GET /v0/course/{id}/students` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `GET /v0/course/{id}/teachers` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `POST /v0/course/{id}/teachers` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `DELETE /v0/course/{id}/teachers/{teacherId}` - `OWNER(course)`, `ADMIN` - `Сделано`
 
 ### LessonController
 
@@ -156,40 +160,3 @@ unenroll - отмена записи субъекта на ресурс
 - `GET /v0/users/{id}` - `ADMIN` - `Сделано`
 - `PATCH /v0/users/{id}/role` - `ADMIN`; самоназначение роли запрещено - `Сделано`
 - `PATCH /v0/users/{id}/status` - `ADMIN`; self-block запрещен - `Сделано`
-
-## Матрица доступа: потенциально необходимые endpoint-ы
-
-### Profile CRUD and moderation
-
-- дополнительных endpoint-ов пока не выделено
-
-### Course CRUD
-
-- `GET /v0/course/{id}/students` - `OWNER(course)`, `ADMIN` - `Нет в доменной модели`
-- `GET /v0/course/{id}/teachers` - `OWNER(course)`, `ADMIN` - `Нет в доменной модели`
-- `POST /v0/course/{id}/teachers` - `OWNER(course)`, `ADMIN` - `Нет в доменной модели`
-- `DELETE /v0/course/{id}/teachers/{teacherId}` - `OWNER(course)`, `ADMIN` - `Нет в доменной модели`
-
-### Course enrollment
-
-- `POST /v0/course/{id}/enroll` - `GUEST`, `STUDENT` - `сделано`
-- `DELETE /v0/course/{id}/enroll` - `ENROLLED(*)` - `сделано`
-- `GET /v0/course/{id}/members` - `ENROLLED(GUEST|STUDENT)`, `OWNER(course)`, `EDITOR(course)`, `ADMIN` - `сделано`
-
-### Lesson CRUD
-
-- дополнительных endpoint-ов пока не выделено
-
-### File management
-
-- дополнительных endpoint-ов пока не выделено
-
-
-## Приоритет внедрения
-
-Здесь описаны этапы внедрения выше описанной политики безопасности
-
-1.) Формирование доменной модели владения ресурсами.
-2.) Реализация моделей enrollment для курсов
-3.) Внедрение ролевой авторизации на уровне действий и операций.
-4.) Разработка и формализация политики управления файловыми ресурсами.

@@ -3,7 +3,9 @@ package ptknow.api.course;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import ptknow.dto.course.CourseDTO;
+import ptknow.dto.course.CourseTeacherDTO;
 import ptknow.dto.course.CreateCourseDTO;
+import ptknow.dto.course.UpdateCourseTeacherDTO;
 import ptknow.dto.course.UpdateCourseDTO;
 import ptknow.dto.enrollment.EnrollmentDTO;
 import ptknow.mapper.enrollment.EnrollmentMapper;
@@ -194,6 +196,47 @@ public class CourseController {
         return ResponseEntity.ok(
                 enrollmentMapper.mapEntityList(enrollments)
         );
+    }
+
+    @GetMapping("/{id}/students")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<List<EnrollmentDTO>> getStudents(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Auth entity
+    ) {
+        List<Enrollment> enrollments = courseService.findStudents(id, entity);
+        return ResponseEntity.ok(enrollmentMapper.mapEntityList(enrollments));
+    }
+
+    @GetMapping("/{id}/teachers")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<List<CourseTeacherDTO>> getTeachers(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Auth entity
+    ) {
+        return ResponseEntity.ok(courseService.findTeachers(id, entity));
+    }
+
+    @PostMapping("/{id}/teachers")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<Void> addTeacher(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateCourseTeacherDTO dto,
+            @AuthenticationPrincipal Auth entity
+    ) {
+        courseService.addTeacher(id, entity, dto.teacherId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}/teachers/{teacherId}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<Void> removeTeacher(
+            @PathVariable Long id,
+            @PathVariable UUID teacherId,
+            @AuthenticationPrincipal Auth entity
+    ) {
+        courseService.removeTeacher(id, entity, teacherId);
+        return ResponseEntity.noContent().build();
     }
 }
 

@@ -3,9 +3,11 @@ package ptknow.service.course;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import ptknow.dto.course.CourseTeacherDTO;
 import ptknow.dto.course.CreateCourseDTO;
 import ptknow.dto.course.UpdateCourseDTO;
 import ptknow.model.auth.Auth;
@@ -13,6 +15,7 @@ import ptknow.model.auth.Role;
 import ptknow.model.course.Course;
 import ptknow.model.course.CourseState;
 import ptknow.model.course.CourseTag;
+import ptknow.model.enrollment.Enrollment;
 import ptknow.model.file.File;
 import ptknow.model.file.attachment.FileAttachment;
 import ptknow.model.file.attachment.resource.ResourceType;
@@ -33,6 +36,7 @@ import ptknow.service.file.FileAttachmentService;
 import ptknow.service.file.FileService;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -255,8 +259,7 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
     public Course addEditor(Long courseId, Auth initiator, UUID targetId) {
         Course course = findCourseById(courseId);
 
-        if(initiator.getRole() != Role.ADMIN && !course.getOwner().equals(initiator))
-            throw new CourseNotOwnedByUserException(initiator.getId());
+        validateOwnerOrAdmin(course, initiator);
 
         Auth target = authRepository.findById(targetId)
                 .orElseThrow(() -> new UserNotFoundException(targetId));
@@ -271,11 +274,73 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
     public Course removeEditor(Long courseId, Auth initiator, UUID targetId) {
         Course course = findCourseById(courseId);
 
-        if(initiator.getRole() != Role.ADMIN && !course.getOwner().equals(initiator))
-            throw new CourseNotOwnedByUserException(initiator.getId());
+        validateOwnerOrAdmin(course, initiator);
 
         Auth target = authRepository.findById(targetId)
                 .orElseThrow(() -> new UserNotFoundException(targetId));
+
+        course.removeEditor(target);
+
+        authRepository.save(target);
+        return repository.save(course);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Enrollment> findStudents(Long courseId, Auth initiator) {
+        Course course = findCourseById(courseId);
+        validateOwnerOrAdmin(course, initiator);
+
+        return course.getEnrollments().stream()
+                .sorted(Comparator.comparing(Enrollment::getEnrollSince))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<CourseTeacherDTO> findTeachers(Long courseId, Auth initiator) {
+        Course course = findCourseById(courseId);
+        validateOwnerOrAdmin(course, initiator);
+
+        Set<Auth> teachers = new HashSet<>(course.getEditors());
+        teachers.add(course.getOwner());
+
+        return teachers.stream()
+                .map(teacher -> toCourseTeacherDTO(teacher, course))
+                .toList();
+    }
+
+    @Transactional
+    public Course addTeacher(Long courseId, Auth initiator, UUID teacherId) {
+        Course course = findCourseById(courseId);
+        validateOwnerOrAdmin(course, initiator);
+
+        Auth target = authRepository.findById(teacherId)
+                .orElseThrow(() -> new UserNotFoundException(teacherId));
+
+        if (target.getRole() != Role.TEACHER && target.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("Only users with TEACHER or ADMIN role can be assigned as course teachers");
+        }
+
+        if (course.getOwner().equals(target)) {
+            return course;
+        }
+
+        course.addEditor(target);
+
+        authRepository.save(target);
+        return repository.save(course);
+    }
+
+    @Transactional
+    public Course removeTeacher(Long courseId, Auth initiator, UUID teacherId) {
+        Course course = findCourseById(courseId);
+        validateOwnerOrAdmin(course, initiator);
+
+        Auth target = authRepository.findById(teacherId)
+                .orElseThrow(() -> new UserNotFoundException(teacherId));
+
+        if (course.getOwner().equals(target)) {
+            throw new AccessDeniedException("Course owner cannot be removed from teachers");
+        }
 
         course.removeEditor(target);
 
@@ -355,9 +420,27 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
     }
 
     private void validateCanChangeCourseState(Course course, Auth initiator) {
+        validateOwnerOrAdmin(course, initiator);
+    }
+
+    private void validateOwnerOrAdmin(Course course, Auth initiator) {
         if (initiator.getRole() != Role.ADMIN && !course.getOwner().equals(initiator)) {
             throw new CourseNotOwnedByUserException(initiator.getId());
         }
+    }
+
+    private CourseTeacherDTO toCourseTeacherDTO(Auth teacher, Course course) {
+        String profileHandle = teacher.getProfile() != null ? teacher.getProfile().getHandle() : null;
+        String fullName = teacher.getProfile() != null ? teacher.getProfile().getFullName() : null;
+
+        return new CourseTeacherDTO(
+                teacher.getId(),
+                teacher.getEmail(),
+                teacher.getRole(),
+                profileHandle,
+                fullName,
+                course.getOwner().equals(teacher)
+        );
     }
 
     private void syncPreviewVisibility(Course course) {
