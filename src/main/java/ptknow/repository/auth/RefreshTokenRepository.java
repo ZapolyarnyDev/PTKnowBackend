@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
 
-    Optional<RefreshToken> findByToken(String token);
+    Optional<RefreshToken> findByTokenHash(String tokenHash);
 
     List<RefreshToken> findAllByUserAndValidIsTrueAndExpireDateAfter(Auth user, Instant now);
 

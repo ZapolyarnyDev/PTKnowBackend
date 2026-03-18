@@ -21,7 +21,11 @@ import ptknow.model.token.RefreshToken;
 import ptknow.properties.JwtProperties;
 import ptknow.repository.auth.RefreshTokenRepository;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
+import java.util.HexFormat;
 
 @Service
 @Slf4j
@@ -61,9 +65,10 @@ public class JwtService {
                 .build();
 
         String token = jwtEncoder.encode(JwtEncoderParameters.from(claimSet)).getTokenValue();
+        String tokenHash = hashRefreshToken(token);
 
         var entity = RefreshToken.builder()
-                .token(token)
+                .tokenHash(tokenHash)
                 .expireDate(expiresAt)
                 .user(user)
                 .build();
@@ -129,7 +134,17 @@ public class JwtService {
     }
 
     private RefreshToken findToken(String token) {
-        return tokenRepository.findByToken(token)
+        return tokenRepository.findByTokenHash(hashRefreshToken(token))
                 .orElseThrow(TokenNotFoundException::new);
+    }
+
+    private String hashRefreshToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 is not available", e);
+        }
     }
 }
