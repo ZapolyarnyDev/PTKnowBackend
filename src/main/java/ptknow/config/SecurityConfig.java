@@ -1,6 +1,7 @@
 package ptknow.config;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import ptknow.filter.AuthRateLimitFilter;
 import ptknow.filter.JwtAuthFilter;
 import ptknow.properties.JwtProperties;
 import ptknow.config.security.RestAccessDeniedHandler;
@@ -37,6 +38,7 @@ public class SecurityConfig {
     private final JwtProperties jwtProperties;
     private final RestAuthenticationEntryPoint authenticationEntryPoint;
     private final RestAccessDeniedHandler accessDeniedHandler;
+    private final AuthRateLimitFilter authRateLimitFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter authFilter) throws Exception {
@@ -51,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/v0/auth/register", "/v0/auth/login", "/v0/token/refresh", "/oauth2/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(authRateLimitFilter, JwtAuthFilter.class)
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

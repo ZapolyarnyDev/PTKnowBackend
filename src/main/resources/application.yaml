@@ -35,3 +35,14 @@ security:
     refresh-token-expiration: P7D
     refresh-cookie-secure: ${JWT_REFRESH_COOKIE_SECURE:false}
     refresh-cookie-same-site: ${JWT_REFRESH_COOKIE_SAME_SITE:Lax}
+  rate-limit:
+    enabled: ${SECURITY_RATE_LIMIT_ENABLED:true}
+    login:
+      max-requests: ${SECURITY_RATE_LIMIT_LOGIN_MAX:10}
+      window: ${SECURITY_RATE_LIMIT_LOGIN_WINDOW:PT1M}
+    register:
+      max-requests: ${SECURITY_RATE_LIMIT_REGISTER_MAX:5}
+      window: ${SECURITY_RATE_LIMIT_REGISTER_WINDOW:PT5M}
+    refresh:
+      max-requests: ${SECURITY_RATE_LIMIT_REFRESH_MAX:30}
+      window: ${SECURITY_RATE_LIMIT_REFRESH_WINDOW:PT1M}
