@@ -83,7 +83,7 @@ public class JwtService {
 
     @Transactional
     public JwtTokens refresh(String refreshToken) throws TokenNotFoundException, InvalidTokenException {
-        RefreshToken entity = findToken(refreshToken);
+        RefreshToken entity = findTokenForRefresh(refreshToken);
 
         if (!isValid(entity))
             throw new InvalidTokenException();
@@ -133,8 +133,9 @@ public class JwtService {
         log.info("Invalidated {} refresh tokens for userId={}", tokens.size(), user.getId());
     }
 
-    private RefreshToken findToken(String token) {
-        return tokenRepository.findByTokenHash(hashRefreshToken(token))
+    private RefreshToken findTokenForRefresh(String token) {
+        String tokenHash = hashRefreshToken(token);
+        return tokenRepository.findByTokenHashForUpdate(tokenHash)
                 .orElseThrow(TokenNotFoundException::new);
     }
 
