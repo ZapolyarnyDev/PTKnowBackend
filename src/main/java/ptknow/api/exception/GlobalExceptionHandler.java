@@ -51,11 +51,16 @@ public class GlobalExceptionHandler {
             EmailAlreadyUsedException.class,
             CourseAlreadyExists.class,
             CourseTagAlreadyExists.class,
-            AlreadyEnrolledException.class,
-            DataIntegrityViolationException.class
+            AlreadyEnrolledException.class
     })
     public ResponseEntity<ApiError> handleConflict(RuntimeException ex, HttpServletRequest req) {
         return build(HttpStatus.CONFLICT, "resource_already_exists", req, ex.getMessage());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleDataIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest req) {
+        log.warn("Data integrity violation on {}", req.getRequestURI(), ex);
+        return build(HttpStatus.CONFLICT, "resource_already_exists", req, "Request conflicts with current data state");
     }
 
     @ExceptionHandler({
@@ -86,7 +91,7 @@ public class GlobalExceptionHandler {
             InvalidResourceIdException.class
     })
     public ResponseEntity<ApiError> handleBadRequest(Exception ex, HttpServletRequest req) {
-        return build(HttpStatus.BAD_REQUEST, "bad_request", req, ex.getMessage());
+        return build(HttpStatus.BAD_REQUEST, "bad_request", req, safeBadRequestMessage(ex));
     }
 
     @ExceptionHandler({
@@ -119,7 +124,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ApiError> handleMaxUploadSize(MaxUploadSizeExceededException ex, HttpServletRequest req) {
-        return build(HttpStatus.CONTENT_TOO_LARGE, "payload_too_large", req, ex.getMessage());
+        return build(HttpStatus.CONTENT_TOO_LARGE, "payload_too_large", req, "Uploaded payload is too large");
     }
 
     @ExceptionHandler(AccessDeniedException.class)
@@ -157,5 +162,21 @@ public class GlobalExceptionHandler {
         }
 
         return message;
+    }
+
+    private String safeBadRequestMessage(Exception ex) {
+        return switch (ex) {
+            case InvalidCredentialsException invalidCredentialsException -> invalidCredentialsException.getMessage();
+            case InvalidTokenException invalidTokenException -> invalidTokenException.getMessage();
+            case CourseIsFullException courseIsFullException -> courseIsFullException.getMessage();
+            case InvalidResourceIdException invalidResourceIdException -> invalidResourceIdException.getMessage();
+            case HttpMessageNotReadableException ignored -> "Malformed request body";
+            case MethodArgumentTypeMismatchException ignored -> "Request parameter has invalid type";
+            case MissingRequestValueException ignored -> "Required request value is missing";
+            case ConstraintViolationException ignored -> "Request validation failed";
+            case HandlerMethodValidationException ignored -> "Request validation failed";
+            case MultipartException ignored -> "Invalid multipart request";
+            default -> "Bad request";
+        };
     }
 }
