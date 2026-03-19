@@ -6,6 +6,7 @@ import ptknow.exception.file.FileNotFoundException;
 import ptknow.properties.FileStorageProperties;
 import ptknow.repository.file.FileRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.InvalidPathException;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -67,6 +69,45 @@ public class FileService {
                 fileEntity.getOriginalFilename(),
                 Files.size(path)
         );
+    }
+
+    public String sanitizeDownloadFilename(String originalFilename, UUID fallbackId) {
+        if (originalFilename == null || originalFilename.isBlank()) {
+            return fallbackId.toString();
+        }
+
+        String normalized = originalFilename
+                .replace('\\', '/')
+                .replace("\r", "")
+                .replace("\n", "")
+                .replace("\"", "");
+
+        try {
+            String fileNameOnly = Paths.get(normalized).getFileName().toString().trim();
+            if (fileNameOnly.isBlank()) {
+                return fallbackId.toString();
+            }
+            return fileNameOnly;
+        } catch (InvalidPathException e) {
+            return fallbackId.toString();
+        }
+    }
+
+    public MediaType resolveDownloadContentType(String contentType) {
+        if (contentType == null || contentType.isBlank()) {
+            return MediaType.APPLICATION_OCTET_STREAM;
+        }
+
+        try {
+            MediaType parsed = MediaType.parseMediaType(contentType);
+            if (parsed.getType().contains("\r") || parsed.getType().contains("\n")
+                    || parsed.getSubtype().contains("\r") || parsed.getSubtype().contains("\n")) {
+                return MediaType.APPLICATION_OCTET_STREAM;
+            }
+            return parsed;
+        } catch (IllegalArgumentException e) {
+            return MediaType.APPLICATION_OCTET_STREAM;
+        }
     }
 
     public FileMetaDTO getMeta(UUID id) throws IOException {

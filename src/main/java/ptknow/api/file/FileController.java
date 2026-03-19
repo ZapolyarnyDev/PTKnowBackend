@@ -11,8 +11,8 @@ import ptknow.service.file.FileWriteService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.UUID;
 
@@ -47,12 +48,17 @@ public class FileController {
 
         var openedFile = fileService.openFile(id);
         var stream = new InputStreamResource(Files.newInputStream(openedFile.path()));
-        String filename = openedFile.originalFilename() != null ? openedFile.originalFilename() : id.toString();
-        String contentType = openedFile.contentType();
+        String filename = fileService.sanitizeDownloadFilename(openedFile.originalFilename(), id);
+        var contentType = fileService.resolveDownloadContentType(openedFile.contentType());
+
+        String contentDisposition = ContentDisposition.inline()
+                .filename(filename, StandardCharsets.UTF_8)
+                .build()
+                .toString();
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
-                .contentType(MediaType.parseMediaType(contentType != null ? contentType : MediaType.APPLICATION_OCTET_STREAM_VALUE))
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
+                .contentType(contentType)
                 .contentLength(openedFile.size())
                 .body(stream);
     }
