@@ -13,7 +13,7 @@
 
 ## Роли и право владения ресурсом
 
-`OWNER` и `EDITOR`  не является глобальной ролью.
+`OWNER` и `EDITOR` не являются глобальными ролями.
 
 `OWNER` - это контекстное право владения конкретным ресурсом, которое может быть только у автора ресурса:
 
@@ -35,8 +35,8 @@
 Следствия:
 
 - пользователь не может иметь глобальную роль `EDITOR`
-- право на изменение ресура должно проверяться в policy/service layer, а не только на уровне controller
-- `ADMIN` имеет доступ ко измнению всех ресурсов
+- право на изменение ресурса должно проверяться в policy/service layer, а не только на уровне controller
+- `ADMIN` имеет доступ к изменению всех ресурсов
 
 ## Переходы ролей
 
@@ -103,7 +103,7 @@ unenroll - отмена записи субъекта на ресурс
 
 ### TokenController
 
-- `POST /v0/token/refresh` - любой пользователь с валидным refresh token - `Сделано`
+- `POST /v0/token/refresh` - `ANONYMOUS` или аутентифицированный пользователь с валидным refresh token - `Сделано`
 
 ### ProfileController
 
@@ -135,6 +135,8 @@ unenroll - отмена записи субъекта на ресурс
 - `GET /v0/course/handle/{handle}` - аналогично `GET /v0/course/id/{id}` - `Сделано`
 - `POST /v0/course/{id}/preview` - `OWNER(course)`, `EDITOR(course)` , `ADMIN`; visibility preview синхронизируется с `state` - `Сделано`
 - `DELETE /v0/course/{id}` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `POST /v0/course/{id}/editors/{userId}` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `DELETE /v0/course/{id}/editors/{userId}` - `OWNER(course)`, `ADMIN` - `Сделано`
 - `POST /v0/course/{id}/publish` - `OWNER(course)`, `ADMIN` - `Сделано`
 - `POST /v0/course/{id}/archive` - `OWNER(course)`, `ADMIN` - `Сделано`
 - `GET /v0/course/{id}/students` - `OWNER(course)`, `ADMIN` - `Сделано`
@@ -144,15 +146,15 @@ unenroll - отмена записи субъекта на ресурс
 
 ### LessonController
 
-- `POST /v0/lessons/{courseId}` - `OWNER(course)`, `EDITOR(course)`, `ADMIN` - `сделано`
-- `GET /v0/lessons/{lessonId}` - `OWNER(course)`, `EDITOR(course)`, `ENROLLED`, `ADMIN` - `сделано`
-- `GET /v0/lessons/course/{courseId}` - `OWNER(course)`, `EDITOR(course)`, `ENROLLED`, `ADMIN` - `сделано`
+- `POST /v0/lessons/{courseId}` - `OWNER(course)`, `EDITOR(course)`, `ADMIN` - `Сделано`
+- `GET /v0/lessons/{lessonId}` - `OWNER(course)`, `EDITOR(course)`, `ENROLLED`, `ADMIN` - `Сделано`
+- `GET /v0/lessons/course/{courseId}` - `OWNER(course)`, `EDITOR(course)`, `ENROLLED`, `ADMIN` - `Сделано`
 - `PATCH /v0/lessons/{lessonId}` - `OWNER(lesson)`, `ADMIN` - `Сделано`
 - `PUT /v0/lessons/{lessonId}` - `OWNER(lesson)`, `ADMIN` - `Сделано`
 - `PATCH /v0/lessons/{lessonId}/state` - `OWNER(lesson)`, `ADMIN` - `Сделано`
-- `DELETE /v0/lessons/{lessonId}` - `OWNER(lesson)`, `OWNER(course)`, `ADMIN` - `сделано`
-- `POST /v0/lessons/{lessonId}/materials` - `OWNER(lesson)`, `ADMIN` - `сделано`
-- `DELETE /v0/lessons/{lessonId}/materials/{fileId}` - `OWNER(lesson)`, `ADMIN` - `сделано`
+- `DELETE /v0/lessons/{lessonId}` - `OWNER(lesson)`, `OWNER(course)`, `ADMIN` - `Сделано`
+- `POST /v0/lessons/{lessonId}/materials` - `OWNER(lesson)`, `ADMIN` - `Сделано`
+- `DELETE /v0/lessons/{lessonId}/materials/{fileId}` - `OWNER(lesson)`, `ADMIN` - `Сделано`
 
 ### UserAdminController
 
