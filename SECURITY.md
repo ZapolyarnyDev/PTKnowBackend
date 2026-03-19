@@ -107,9 +107,9 @@ unenroll - отмена записи субъекта на ресурс
 
 ### ProfileController
 
-- `GET /v0/profile` - `ANONYMOUS`, `GUEST`, `STUDENT`, `TEACHER`, `ADMIN` - `Сделано`
+- `GET /v0/profile` - `GUEST`, `STUDENT`, `TEACHER`, `ADMIN` - `Сделано`
 - `GET /v0/profile/me` - `OWNER(profile)` - `Сделано`
-- `GET /v0/profile/{handle}` - `ANONYMOUS`, `GUEST`, `STUDENT`, `TEACHER`, `ADMIN` - `Сделано`
+- `GET /v0/profile/{handle}` - `GUEST`, `STUDENT`, `TEACHER`, `ADMIN` - `Сделано`
 - `GET /v0/profile/id/{userId}` - `ADMIN`, `OWNER(profile)` - `Сделано`
 - `PATCH /v0/profile` - `OWNER(profile)` - `Сделано`
 - `PUT /v0/profile` - `OWNER(profile)` - `Сделано`
