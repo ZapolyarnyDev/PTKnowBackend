@@ -1,0 +1,32 @@
+server:
+  port: 0
+
+spring:
+  flyway:
+    enabled: false
+  datasource:
+    url: jdbc:h2:mem:ptknow_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+app:
+  file:
+    upload-dir: build/test-uploads
+
+security:
+  jwt:
+    issuer: ptknow-test
+    key: 12345678901234567890123456789012
+    access-token-expiration: PT15M
+    refresh-token-expiration: P7D
+    refresh-cookie-secure: false
+    refresh-cookie-same-site: Lax
+  rate-limit:
+    enabled: false

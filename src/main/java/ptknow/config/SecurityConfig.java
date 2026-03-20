@@ -53,7 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/v0/auth/register", "/v0/auth/login", "/v0/token/refresh", "/oauth2/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(authRateLimitFilter, JwtAuthFilter.class)
+                .addFilterBefore(authRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
