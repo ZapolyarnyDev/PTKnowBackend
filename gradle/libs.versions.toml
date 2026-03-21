@@ -5,6 +5,7 @@ mapstruct = "1.6.3"
 jnanoid = "2.0.0"
 lombok = "1.18.42"
 postgresql = "42.7.10"
+springdoc = "3.0.2"
 
 [libraries]
 spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
@@ -25,6 +26,7 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 h2 = { module = "com.h2database:h2" }
 flyway-core = { module = "org.flywaydb:flyway-core" }
 flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
+springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
 
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }

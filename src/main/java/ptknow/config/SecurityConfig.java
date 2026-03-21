@@ -50,7 +50,15 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/v0/auth/register", "/v0/auth/login", "/v0/token/refresh", "/oauth2/**").permitAll()
+                        .requestMatchers(
+                                "/v0/auth/register",
+                                "/v0/auth/login",
+                                "/v0/token/refresh",
+                                "/oauth2/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(authRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
