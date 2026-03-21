@@ -146,6 +146,8 @@ unenroll - отмена записи субъекта на ресурс
 
 ### LessonController
 
+`contentMd` является частью ресурса `lesson` и подчиняется тем же правилам доступа, что и чтение/изменение урока: виден через `GET lesson` и `GET lessons by course`, изменяется только через `PATCH/PUT lesson`.
+
 - `POST /v0/lessons/{courseId}` - `OWNER(course)`, `EDITOR(course)`, `ADMIN` - `Сделано`
 - `GET /v0/lessons/{lessonId}` - `OWNER(course)`, `EDITOR(course)`, `ENROLLED`, `ADMIN` - `Сделано`
 - `GET /v0/lessons/course/{courseId}` - `OWNER(course)`, `EDITOR(course)`, `ENROLLED`, `ADMIN` - `Сделано`
