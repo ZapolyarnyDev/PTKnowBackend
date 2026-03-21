@@ -55,7 +55,9 @@ public class SecurityConfig {
                                 "/v0/auth/login",
                                 "/v0/token/refresh",
                                 "/oauth2/**",
+                                "/v3/api-docs",
                                 "/v3/api-docs/**",
+                                "/v3/api-docs.yaml",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**"
                         ).permitAll()
