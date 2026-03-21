@@ -85,16 +85,31 @@ public class JwtService {
     public JwtTokens refresh(String refreshToken) throws TokenNotFoundException, InvalidTokenException {
         RefreshToken entity = findTokenForRefresh(refreshToken);
 
-        if (!isValid(entity))
+        if (!isValid(entity)) {
+            entity.setValid(false);
+            tokenRepository.save(entity);
             throw new InvalidTokenException();
-        if (!entity.getUser().isEnabled())
+        }
+        if (!entity.getUser().isEnabled()) {
+            entity.setValid(false);
+            tokenRepository.save(entity);
+            invalidateUserTokens(entity.getUser());
             throw new AccessDeniedException("User account is blocked");
+        }
 
         entity.setValid(false);
         log.info("Refresh token invalidated. id={}, userId={}", entity.getId(), entity.getUser().getId());
 
         tokenRepository.save(entity);
         return generateTokenPair(entity.getUser());
+    }
+
+    @Transactional
+    public void logout(Auth user) {
+        if (user == null) {
+            throw new AccessDeniedException("Authenticated user is required");
+        }
+        invalidateUserTokens(user);
     }
 
     public ResponseCookie tokenToCookie(String cookiePath, String refreshToken) {

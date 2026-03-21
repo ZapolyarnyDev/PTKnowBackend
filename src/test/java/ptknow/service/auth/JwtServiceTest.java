@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -125,6 +126,8 @@ class JwtServiceTest {
         when(tokenRepository.findByTokenHashForUpdate(any())).thenReturn(Optional.of(stored));
 
         assertThrows(InvalidTokenException.class, () -> jwtService.refresh("expired-token"));
+        assertFalse(stored.isValid());
+        verify(tokenRepository).save(stored);
     }
 
     @Test
@@ -138,9 +141,12 @@ class JwtServiceTest {
                 .build();
 
         when(tokenRepository.findByTokenHashForUpdate(any())).thenReturn(Optional.of(stored));
+        when(tokenRepository.findAllByUserAndValidIsTrueAndExpireDateAfter(eq(user), any())).thenReturn(List.of());
 
         assertThrows(AccessDeniedException.class, () -> jwtService.refresh("blocked-user-token"));
-        assertTrue(stored.isValid());
+        assertFalse(stored.isValid());
+        verify(tokenRepository).save(stored);
+        verify(tokenRepository).findAllByUserAndValidIsTrueAndExpireDateAfter(eq(user), any());
     }
 
     @Test
@@ -167,6 +173,21 @@ class JwtServiceTest {
         assertFalse(first.isValid());
         assertFalse(second.isValid());
         verify(tokenRepository).saveAll(List.of(first, second));
+    }
+
+    @Test
+    void logoutShouldInvalidateAllUserTokens() {
+        Auth user = auth(Role.STUDENT, UserStatus.ACTIVE);
+        when(tokenRepository.findAllByUserAndValidIsTrueAndExpireDateAfter(eq(user), any())).thenReturn(List.of());
+
+        jwtService.logout(user);
+
+        verify(tokenRepository).findAllByUserAndValidIsTrueAndExpireDateAfter(eq(user), any());
+    }
+
+    @Test
+    void logoutShouldRejectMissingUser() {
+        assertThrows(AccessDeniedException.class, () -> jwtService.logout(null));
     }
 
     @Test

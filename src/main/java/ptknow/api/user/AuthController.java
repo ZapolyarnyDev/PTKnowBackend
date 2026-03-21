@@ -54,7 +54,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@AuthenticationPrincipal Auth user) {
-        jwtService.invalidateUserTokens(user);
+        jwtService.logout(user);
 
         ResponseCookie cookie = jwtService.deleteRefreshCookie("/v0/token/refresh");
 
