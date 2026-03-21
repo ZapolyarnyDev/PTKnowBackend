@@ -33,7 +33,7 @@ springdoc:
 
 app:
   file:
-    upload-dir: "uploads"
+    upload-dir: ${APP_FILE_UPLOAD_DIR:uploads}
     max-file-size-bytes: 10485760
 
 security:
