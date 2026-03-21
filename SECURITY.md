@@ -139,6 +139,9 @@ unenroll - отмена записи субъекта на ресурс
 - `DELETE /v0/course/{id}/editors/{userId}` - `OWNER(course)`, `ADMIN` - `Сделано`
 - `POST /v0/course/{id}/publish` - `OWNER(course)`, `ADMIN` - `Сделано`
 - `POST /v0/course/{id}/archive` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `POST /v0/course/{id}/enroll` - `GUEST`, `STUDENT`; дополнительно применяются business-ограничения enrollment (не повторно, не при переполнении курса) - `Сделано`
+- `DELETE /v0/course/{id}/enroll` - сам записанный пользователь (`GUEST`, `STUDENT`) - `Сделано`
+- `GET /v0/course/{id}/members` - `OWNER(course)`, `EDITOR(course)`, `ENROLLED`, `ADMIN` - `Сделано`
 - `GET /v0/course/{id}/students` - `OWNER(course)`, `ADMIN` - `Сделано`
 - `GET /v0/course/{id}/teachers` - `OWNER(course)`, `ADMIN` - `Сделано`
 - `POST /v0/course/{id}/teachers` - `OWNER(course)`, `ADMIN` - `Сделано`
