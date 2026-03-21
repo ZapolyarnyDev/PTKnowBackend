@@ -1,7 +1,15 @@
 package ptknow.api.file;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import ptknow.api.exception.ApiError;
 import ptknow.dto.file.FileMetaDTO;
 import ptknow.exception.file.FileAccessDeniedException;
 import ptknow.model.auth.Auth;
@@ -31,6 +39,8 @@ import java.util.UUID;
 @RequestMapping("/v0/files")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@SecurityRequirement(name = "bearerAuth")
+@Tag(name = "Файлы", description = "Скачивание, метаданные и удаление файлов")
 public class FileController {
 
     FileService fileService;
@@ -38,6 +48,15 @@ public class FileController {
     FileWriteService fileWriteService;
 
     @GetMapping("/{id}")
+    @Operation(summary = "Скачать файл", description = "Возвращает бинарное содержимое файла, если текущий пользователь имеет право чтения по visibility и ownership-правилам.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Бинарный поток файла",
+                    content = @Content(mediaType = "application/octet-stream")),
+            @ApiResponse(responseCode = "403", description = "Доступ к файлу запрещён",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "404", description = "Файл не найден",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
+    })
     @PreAuthorize("hasAnyRole('GUEST', 'STUDENT', 'TEACHER', 'ADMIN')")
     public ResponseEntity<Resource> getFile(
             @PathVariable UUID id,
@@ -65,6 +84,7 @@ public class FileController {
     }
 
     @GetMapping("/{id}/meta")
+    @Operation(summary = "Получить метаданные файла", description = "Возвращает метаданные файла. В текущей реализации доступно только пользователям, которые могут удалить файл.")
     @PreAuthorize("hasAnyRole('GUEST', 'STUDENT', 'TEACHER', 'ADMIN')")
     public ResponseEntity<FileMetaDTO> getFileMeta(
             @PathVariable UUID id,
@@ -77,6 +97,7 @@ public class FileController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Удалить файл", description = "Удаляет файл, если у текущего пользователя есть право записи на владеющий ресурс или он ADMIN.")
     @PreAuthorize("hasAnyRole('GUEST', 'STUDENT', 'TEACHER', 'ADMIN')")
     public ResponseEntity<Void> deleteFile(
             @PathVariable UUID id,
