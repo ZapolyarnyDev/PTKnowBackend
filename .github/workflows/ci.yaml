@@ -35,3 +35,86 @@ jobs:
           path: |
             build/reports/tests/test
             build/test-results/test
+
+  validate-migrations:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: ptknow_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ptknow_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: gradle
+
+      - name: Grant execute permission for Gradle wrapper
+        run: chmod +x ./gradlew
+
+      - name: Build boot jar
+        run: ./gradlew bootJar
+
+      - name: Start application against clean Postgres and validate migrations
+        env:
+          PTKNOW_PORT: 0
+          PTKNOW_DATASOURCE_ADDRESS: localhost:5432
+          PTKNOW_DATASOURCE_NAME: ptknow_ci
+          PTKNOW_DATASOURCE_USERNAME: postgres
+          PTKNOW_DATASOURCE_PASSWORD: postgres
+          JWT_ISSUER: ptknow-ci
+          SECRET_JWT_KEY: 12345678901234567890123456789012
+          JWT_REFRESH_COOKIE_SECURE: false
+          JWT_REFRESH_COOKIE_SAME_SITE: Lax
+          SECURITY_RATE_LIMIT_ENABLED: false
+        run: |
+          java -jar build/libs/app.jar > app.log 2>&1 &
+          APP_PID=$!
+          echo "APP_PID=$APP_PID" >> $GITHUB_ENV
+
+          for i in {1..60}; do
+            if grep -q "Started PTKnowApplication" app.log; then
+              echo "Application started successfully"
+              kill $APP_PID
+              wait $APP_PID || true
+              exit 0
+            fi
+
+            if ! kill -0 $APP_PID 2>/dev/null; then
+              echo "Application exited before startup"
+              cat app.log
+              exit 1
+            fi
+
+            sleep 2
+          done
+
+          echo "Timed out waiting for application startup"
+          cat app.log
+          kill $APP_PID
+          wait $APP_PID || true
+          exit 1
+
+      - name: Upload migration validation log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-validation-log
+          path: app.log
