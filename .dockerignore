@@ -1,0 +1,13 @@
+.git
+.github
+.gradle
+.idea
+build
+out
+
+*.iml
+*.log
+
+README.md
+API.md
+SECURITY.md

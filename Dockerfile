@@ -11,7 +11,7 @@ RUN gradle bootJar --no-daemon
 FROM eclipse-temurin:25-jre
 
 ARG EXPOSE_PORT
-ENV SERVER_PORT=${EXPOSE_PORT}
+ENV PTKNOW_PORT=${EXPOSE_PORT}
 
 ENV JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC"
 
