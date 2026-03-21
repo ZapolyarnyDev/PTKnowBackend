@@ -7,10 +7,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import ptknow.model.file.File;
+import ptknow.exception.file.InvalidFileUploadException;
 import ptknow.properties.FileStorageProperties;
 import ptknow.repository.file.FileRepository;
 
@@ -58,6 +58,35 @@ class FileServiceTest {
 
         assertThrows(RuntimeException.class, () -> fileService.saveFile(multipartFile));
         assertEquals(0, Files.list(tempDir).count());
+    }
+
+    @Test
+    void saveFileShouldRejectEmptyUpload() {
+        properties.setUploadDir(tempDir.toString());
+        fileService = new FileService(fileRepository, properties);
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "file",
+                "lesson.md",
+                "text/markdown",
+                new byte[0]
+        );
+
+        assertThrows(InvalidFileUploadException.class, () -> fileService.saveFile(multipartFile));
+    }
+
+    @Test
+    void saveFileShouldRejectUploadAboveConfiguredLimit() {
+        properties.setUploadDir(tempDir.toString());
+        properties.setMaxFileSizeBytes(4);
+        fileService = new FileService(fileRepository, properties);
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "file",
+                "lesson.md",
+                "text/markdown",
+                "12345".getBytes()
+        );
+
+        assertThrows(InvalidFileUploadException.class, () -> fileService.saveFile(multipartFile));
     }
 
     @Test

@@ -29,6 +29,7 @@ import ptknow.exception.file.FileAccessDeniedException;
 import ptknow.exception.file.FileAttachmentNotFoundException;
 import ptknow.exception.file.FileNotFoundException;
 import ptknow.exception.file.InvalidResourceIdException;
+import ptknow.exception.file.InvalidFileUploadException;
 import ptknow.exception.lesson.LessonCannotBeCreatedException;
 import ptknow.exception.lesson.LessonNotFoundException;
 import ptknow.exception.lesson.LessonNotOwnedException;
@@ -88,7 +89,8 @@ public class GlobalExceptionHandler {
             HandlerMethodValidationException.class,
             MultipartException.class,
             CourseIsFullException.class,
-            InvalidResourceIdException.class
+            InvalidResourceIdException.class,
+            InvalidFileUploadException.class
     })
     public ResponseEntity<ApiError> handleBadRequest(Exception ex, HttpServletRequest req) {
         return build(HttpStatus.BAD_REQUEST, "bad_request", req, safeBadRequestMessage(ex));
@@ -170,6 +172,7 @@ public class GlobalExceptionHandler {
             case InvalidTokenException invalidTokenException -> invalidTokenException.getMessage();
             case CourseIsFullException courseIsFullException -> courseIsFullException.getMessage();
             case InvalidResourceIdException invalidResourceIdException -> invalidResourceIdException.getMessage();
+            case InvalidFileUploadException invalidFileUploadException -> invalidFileUploadException.getMessage();
             case HttpMessageNotReadableException ignored -> "Malformed request body";
             case MethodArgumentTypeMismatchException ignored -> "Request parameter has invalid type";
             case MissingRequestValueException ignored -> "Required request value is missing";

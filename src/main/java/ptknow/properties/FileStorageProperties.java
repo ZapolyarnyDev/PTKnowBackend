@@ -1,6 +1,7 @@
 package ptknow.properties;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,4 +18,7 @@ public class FileStorageProperties {
 
     @NotBlank
     String uploadDir;
+
+    @Positive
+    long maxFileSizeBytes = 10 * 1024 * 1024;
 }

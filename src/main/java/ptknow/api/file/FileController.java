@@ -58,6 +58,7 @@ public class FileController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
+                .header("X-Content-Type-Options", "nosniff")
                 .contentType(contentType)
                 .contentLength(openedFile.size())
                 .body(stream);
@@ -85,4 +86,3 @@ public class FileController {
         return ResponseEntity.noContent().build();
     }
 }
-

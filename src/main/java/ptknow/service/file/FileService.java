@@ -2,6 +2,7 @@ package ptknow.service.file;
 
 import ptknow.model.file.File;
 import ptknow.dto.file.FileMetaDTO;
+import ptknow.exception.file.InvalidFileUploadException;
 import ptknow.exception.file.FileNotFoundException;
 import ptknow.properties.FileStorageProperties;
 import ptknow.repository.file.FileRepository;
@@ -36,6 +37,8 @@ public class FileService {
     ) {}
 
     public File saveFile(MultipartFile file) throws IOException {
+        validateUpload(file);
+
         Path root = Paths.get(fileStorageProperties.getUploadDir());
         if (!Files.exists(root)) {
             Files.createDirectories(root);
@@ -48,8 +51,8 @@ public class FileService {
         try {
             File entity = File.builder()
                     .id(fileId)
-                    .originalFilename(file.getOriginalFilename())
-                    .contentType(file.getContentType())
+                    .originalFilename(sanitizeDownloadFilename(file.getOriginalFilename(), fileId))
+                    .contentType(resolveDownloadContentType(file.getContentType()).toString())
                     .storagePath(filePath.toString())
                     .uploadedAt(Instant.now())
                     .build();
@@ -159,6 +162,16 @@ public class FileService {
         }
 
         Files.deleteIfExists(path);
+    }
+
+    private void validateUpload(MultipartFile file) {
+        if (file.isEmpty() || file.getSize() <= 0) {
+            throw new InvalidFileUploadException("Uploaded file must not be empty");
+        }
+
+        if (file.getSize() > fileStorageProperties.getMaxFileSizeBytes()) {
+            throw new InvalidFileUploadException("Uploaded file exceeds the allowed size");
+        }
     }
 
 }
