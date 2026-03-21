@@ -30,9 +30,8 @@ public class Lesson {
     @Setter
     String description;
 
-    @Lob
     @Setter
-    @Column(name = "content_md")
+    @Column(name = "content_md", columnDefinition = "text")
     String contentMd;
 
     @Column(nullable = false)
