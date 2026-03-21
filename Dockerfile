@@ -2,11 +2,16 @@ FROM gradle:9.1.0-jdk AS builder
 
 WORKDIR /build
 
-COPY src ./src
+COPY gradlew ./
 COPY build.gradle.kts settings.gradle.kts ./
 COPY gradle ./gradle
+RUN chmod +x ./gradlew
 
-RUN gradle bootJar --no-daemon
+RUN ./gradlew dependencies --no-daemon || true
+
+COPY src ./src
+
+RUN ./gradlew bootJar --no-daemon
 
 FROM eclipse-temurin:25-jre
 
