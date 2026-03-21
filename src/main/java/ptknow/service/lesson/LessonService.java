@@ -54,6 +54,7 @@ public class LessonService implements OwnershipService<Long>, AccessService<Long
         Lesson entity = Lesson.builder()
                 .name(dto.name())
                 .description(dto.description())
+                .contentMd(dto.contentMd())
                 .beginAt(dto.beginAt())
                 .endsAt(dto.endsAt())
                 .course(course)
@@ -115,6 +116,8 @@ public class LessonService implements OwnershipService<Long>, AccessService<Long
             lesson.setName(dto.name());
         if (dto.description() != null)
             lesson.setDescription(dto.description());
+        if (dto.contentMd() != null)
+            lesson.setContentMd(dto.contentMd());
         if (dto.beginAt() != null)
             lesson.setBeginAt(dto.beginAt());
         if (dto.endsAt() != null)
@@ -132,6 +135,7 @@ public class LessonService implements OwnershipService<Long>, AccessService<Long
 
         lesson.setName(dto.name());
         lesson.setDescription(dto.description());
+        lesson.setContentMd(dto.contentMd());
         lesson.setBeginAt(dto.beginAt());
         lesson.setEndsAt(dto.endsAt());
         lesson.setType(dto.type());

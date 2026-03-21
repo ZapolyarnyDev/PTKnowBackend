@@ -127,7 +127,7 @@ class LessonServiceTest {
     void updateByPatchShouldAllowOnlyLessonOwnerOrAdmin() {
         Auth owner = auth(Role.TEACHER);
         Lesson lesson = lesson(10L, course(1L, auth(Role.TEACHER)), owner);
-        UpdateLessonDTO dto = new UpdateLessonDTO("new name", "new desc", null, null, LessonType.PRACTICE);
+        UpdateLessonDTO dto = new UpdateLessonDTO("new name", "new desc", "## md", null, null, LessonType.PRACTICE);
 
         when(lessonRepository.findById(lesson.getId())).thenReturn(Optional.of(lesson));
         when(lessonRepository.save(any(Lesson.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -136,6 +136,7 @@ class LessonServiceTest {
 
         assertEquals("new name", result.getName());
         assertEquals("new desc", result.getDescription());
+        assertEquals("## md", result.getContentMd());
         assertEquals(LessonType.PRACTICE, result.getType());
     }
 
@@ -148,7 +149,7 @@ class LessonServiceTest {
         when(lessonRepository.findById(lesson.getId())).thenReturn(Optional.of(lesson));
 
         assertThrows(LessonNotOwnedException.class,
-                () -> lessonService.updateByPatch(lesson.getId(), editorTeacher, new UpdateLessonDTO("n", null, null, null, null)));
+                () -> lessonService.updateByPatch(lesson.getId(), editorTeacher, new UpdateLessonDTO("n", null, null, null, null, null)));
     }
 
     @Test
@@ -243,6 +244,7 @@ class LessonServiceTest {
         return new CreateLessonDTO(
                 "Lesson 1",
                 "Description",
+                "# Lesson 1",
                 Instant.now(),
                 Instant.now().plusSeconds(3600),
                 LessonType.LECTURE
@@ -276,6 +278,7 @@ class LessonServiceTest {
         Lesson lesson = Lesson.builder()
                 .name("lesson-" + id)
                 .description("desc")
+                .contentMd("# lesson")
                 .beginAt(Instant.now())
                 .endsAt(Instant.now().plusSeconds(3600))
                 .course(course)

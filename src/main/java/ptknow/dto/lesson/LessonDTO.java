@@ -9,6 +9,7 @@ public record LessonDTO(
         Long id,
         String name,
         String description,
+        String contentMd,
         Instant beginAt,
         Instant endsAt,
         LessonState state,

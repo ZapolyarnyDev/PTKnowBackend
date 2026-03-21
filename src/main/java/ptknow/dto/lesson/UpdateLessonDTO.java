@@ -13,6 +13,8 @@ public record UpdateLessonDTO(
         String name,
         @Size(max = 1000, message = "Lesson description must be at most 1000 characters")
         String description,
+        @Size(max = 50000, message = "Lesson markdown content must be at most 50000 characters")
+        String contentMd,
         Instant beginAt,
         Instant endsAt,
         LessonType type
