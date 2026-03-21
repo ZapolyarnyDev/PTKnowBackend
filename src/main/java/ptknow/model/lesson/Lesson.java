@@ -30,6 +30,11 @@ public class Lesson {
     @Setter
     String description;
 
+    @Lob
+    @Setter
+    @Column(name = "content_md")
+    String contentMd;
+
     @Column(nullable = false)
     @Setter
     Instant beginAt;
@@ -57,9 +62,10 @@ public class Lesson {
     Auth owner;
 
     @Builder
-    public Lesson(String name, String description, Instant beginAt, Instant endsAt, Course course, LessonType lessonType, Auth owner) {
+    public Lesson(String name, String description, String contentMd, Instant beginAt, Instant endsAt, Course course, LessonType lessonType, Auth owner) {
         this.name = name;
         this.description = description;
+        this.contentMd = contentMd;
         this.beginAt = beginAt;
         this.endsAt = endsAt;
         this.course = course;
