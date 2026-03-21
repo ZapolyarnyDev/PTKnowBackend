@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -85,6 +86,7 @@ class LessonServiceTest {
         assertSame(editor, lesson.getOwner());
         assertSame(course, lesson.getCourse());
         assertEquals(dto.name(), lesson.getName());
+        assertEquals(dto.contentMd(), lesson.getContentMd());
     }
 
     @Test
@@ -150,6 +152,67 @@ class LessonServiceTest {
 
         assertThrows(LessonNotOwnedException.class,
                 () -> lessonService.updateByPatch(lesson.getId(), editorTeacher, new UpdateLessonDTO("n", null, null, null, null, null)));
+    }
+
+    @Test
+    void updateByPatchShouldKeepMarkdownWhenContentIsNull() {
+        Auth owner = auth(Role.TEACHER);
+        Lesson lesson = lesson(10L, course(1L, auth(Role.TEACHER)), owner);
+        String initialMarkdown = lesson.getContentMd();
+        UpdateLessonDTO dto = new UpdateLessonDTO("patched", null, null, null, null, null);
+
+        when(lessonRepository.findById(lesson.getId())).thenReturn(Optional.of(lesson));
+        when(lessonRepository.save(any(Lesson.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Lesson result = lessonService.updateByPatch(lesson.getId(), owner, dto);
+
+        assertEquals("patched", result.getName());
+        assertEquals(initialMarkdown, result.getContentMd());
+    }
+
+    @Test
+    void updateByPutShouldReplaceMarkdownContent() {
+        Auth owner = auth(Role.TEACHER);
+        Lesson lesson = lesson(10L, course(1L, auth(Role.TEACHER)), owner);
+        CreateLessonDTO dto = new CreateLessonDTO(
+                "put name",
+                "put desc",
+                "## replaced",
+                Instant.now().plusSeconds(60),
+                Instant.now().plusSeconds(3660),
+                LessonType.PRACTICE
+        );
+
+        when(lessonRepository.findById(lesson.getId())).thenReturn(Optional.of(lesson));
+        when(lessonRepository.save(any(Lesson.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Lesson result = lessonService.updateByPut(lesson.getId(), owner, dto);
+
+        assertEquals(dto.name(), result.getName());
+        assertEquals(dto.description(), result.getDescription());
+        assertEquals(dto.contentMd(), result.getContentMd());
+        assertEquals(dto.type(), result.getType());
+    }
+
+    @Test
+    void updateByPutShouldAllowClearingMarkdownContent() {
+        Auth owner = auth(Role.TEACHER);
+        Lesson lesson = lesson(10L, course(1L, auth(Role.TEACHER)), owner);
+        CreateLessonDTO dto = new CreateLessonDTO(
+                "put name",
+                "put desc",
+                null,
+                Instant.now().plusSeconds(60),
+                Instant.now().plusSeconds(3660),
+                LessonType.LECTURE
+        );
+
+        when(lessonRepository.findById(lesson.getId())).thenReturn(Optional.of(lesson));
+        when(lessonRepository.save(any(Lesson.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Lesson result = lessonService.updateByPut(lesson.getId(), owner, dto);
+
+        assertNull(result.getContentMd());
     }
 
     @Test
