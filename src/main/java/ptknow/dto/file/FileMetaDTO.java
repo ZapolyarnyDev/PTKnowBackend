@@ -1,6 +1,8 @@
 package ptknow.dto.file;
 
 import lombok.Builder;
+import ptknow.model.file.attachment.FileVisibility;
+import ptknow.model.file.attachment.resource.Purpose;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -11,6 +13,9 @@ public record FileMetaDTO(
         String originalFilename,
         String contentType,
         Long size,
-        Instant uploadedAt
+        Instant uploadedAt,
+        String downloadUrl,
+        Purpose purpose,
+        FileVisibility visibility
 ) {
 }

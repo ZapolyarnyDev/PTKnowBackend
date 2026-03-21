@@ -1,20 +1,33 @@
 package ptknow.mapper.enrollment;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 import ptknow.dto.enrollment.EnrollmentDTO;
+import ptknow.mapper.ApiViewMapper;
 import ptknow.model.enrollment.Enrollment;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
-public interface EnrollmentMapper {
+@Component
+@RequiredArgsConstructor
+public class EnrollmentMapper {
 
-    @Mapping(source = "user.id", target = "userId")
-    @Mapping(source = "course.id", target = "courseId")
-    @Mapping(source = "enrollSince", target = "since")
-    EnrollmentDTO toDTOFromEntity(Enrollment enrollment);
+    private final ApiViewMapper apiViewMapper;
 
-    List<EnrollmentDTO> mapEntityList(List<Enrollment> enrollments);
+    public EnrollmentDTO toDTOFromEntity(Enrollment enrollment) {
+        return new EnrollmentDTO(
+                enrollment.getId(),
+                enrollment.getUser().getId(),
+                enrollment.getCourse().getId(),
+                enrollment.getEnrollSince(),
+                apiViewMapper.toUserSummary(enrollment.getUser()),
+                apiViewMapper.toCourseSummary(enrollment.getCourse())
+        );
+    }
 
+    public List<EnrollmentDTO> mapEntityList(List<Enrollment> enrollments) {
+        return enrollments.stream()
+                .map(this::toDTOFromEntity)
+                .toList();
+    }
 }

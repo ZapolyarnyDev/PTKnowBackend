@@ -1,31 +1,35 @@
 package ptknow.mapper.course;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 import ptknow.dto.course.CourseDTO;
+import ptknow.mapper.ApiViewMapper;
 import ptknow.model.course.Course;
-import ptknow.model.course.CourseTag;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+@Component
+@RequiredArgsConstructor
+public class CourseMapper {
 
-@Mapper(componentModel = "spring")
-public interface CourseMapper {
+    private final ApiViewMapper apiViewMapper;
 
-    @Mapping(source = "courseTags", target = "tags")
-    @Mapping(source = "preview.id", target = "previewUrl", qualifiedByName = "mapPreviewIdToUrl")
-    CourseDTO courseToDTO(Course entity);
-
-    default List<String> mapCourseTags(Set<CourseTag> tags) {
-        return tags.stream().map(CourseTag::getTagName).toList();
-    }
-
-    @Named("mapPreviewIdToUrl")
-    default String mapPreviewIdToUrl(UUID previewId) {
-        if (previewId == null) return null;
-        return "/v0/files/" + previewId;
+    public CourseDTO courseToDTO(Course entity) {
+        return new CourseDTO(
+                entity.getId(),
+                entity.getName(),
+                entity.getDescription(),
+                entity.getCourseTags().stream().map(tag -> tag.getTagName()).toList(),
+                entity.getHandle(),
+                entity.getState(),
+                entity.getPreview() != null ? apiViewMapper.toFileUrl(entity.getPreview().getId()) : null,
+                apiViewMapper.toFileMeta(entity.getPreview()),
+                entity.getMaxUsersAmount(),
+                entity.getLessons().size(),
+                entity.getEnrollments().size(),
+                entity.getEditors().size() + 1,
+                apiViewMapper.toUserSummary(entity.getOwner()),
+                entity.getEditors().stream()
+                        .map(apiViewMapper::toUserSummary)
+                        .toList()
+        );
     }
 }
-
