@@ -8,6 +8,8 @@ import ptknow.repository.file.FileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -43,15 +45,20 @@ public class FileService {
         Path filePath = root.resolve(fileId.toString());
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-        File entity = File.builder()
-                .id(fileId)
-                .originalFilename(file.getOriginalFilename())
-                .contentType(file.getContentType())
-                .storagePath(filePath.toString())
-                .uploadedAt(Instant.now())
-                .build();
+        try {
+            File entity = File.builder()
+                    .id(fileId)
+                    .originalFilename(file.getOriginalFilename())
+                    .contentType(file.getContentType())
+                    .storagePath(filePath.toString())
+                    .uploadedAt(Instant.now())
+                    .build();
 
-        return fileRepository.save(entity);
+            return fileRepository.save(entity);
+        } catch (RuntimeException e) {
+            Files.deleteIfExists(filePath);
+            throw e;
+        }
     }
 
     public OpenedFile openFile(UUID id) throws IOException {
@@ -133,11 +140,25 @@ public class FileService {
                 .orElseThrow(() -> new FileNotFoundException("File not found"));
 
         Path path = Paths.get(fileEntity.getStoragePath());
-        if (Files.exists(path)) {
-            Files.delete(path);
+        fileRepository.delete(fileEntity);
+        deletePhysicalFileAfterCommit(path);
+    }
+
+    private void deletePhysicalFileAfterCommit(Path path) throws IOException {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    try {
+                        Files.deleteIfExists(path);
+                    } catch (IOException ignored) {
+                    }
+                }
+            });
+            return;
         }
 
-        fileRepository.delete(fileEntity);
+        Files.deleteIfExists(path);
     }
 
 }
