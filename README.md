@@ -1,6 +1,6 @@
-﻿# PTKnow Server
+﻿# PTKnowBackend
 
-PTKnow Server — backend платформы дополнительного образования.
+PTKnowBackend — backend платформы дополнительного образования.
 
 ## Что делает проект
 
@@ -99,7 +99,7 @@ Spring читает именно environment variables.
 docker build -t ptknow-server .
 ```
 
-Полный deploy через `compose` вынесен в отдельный deploy-репозиторий.
+Полный deploy через `compose` вынесен в отдельный [deploy-репозиторий](https://github.com/ZapolyarnyDev/PTKnowDeployment).
 
 ## Тесты
 
