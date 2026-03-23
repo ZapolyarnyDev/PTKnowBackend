@@ -159,7 +159,11 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
     }
 
     private boolean canSeeProfile(Auth initiator) {
-        if (initiator == null || initiator.getRole() == null) {
+        if (initiator == null) {
+            return true;
+        }
+
+        if (initiator.getRole() == null) {
             return false;
         }
 

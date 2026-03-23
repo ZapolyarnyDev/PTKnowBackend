@@ -32,7 +32,7 @@ public class FileAccessService implements OwnershipService<Long> {
     public boolean canRead(UUID fileId, Auth user) {
         Set<FileAttachment> attachments = findAllByFileIdOrThrow(fileId);
 
-        if(user.getRole() == Role.ADMIN)
+        if (user != null && user.getRole() == Role.ADMIN)
             return true;
 
         return attachments.stream().anyMatch(attachment -> canRead(attachment, user));
@@ -40,6 +40,10 @@ public class FileAccessService implements OwnershipService<Long> {
 
     @Transactional(readOnly = true)
     public boolean canDelete(UUID fileId, Auth user) {
+        if (user == null) {
+            return false;
+        }
+
         if (user.getRole() == Role.ADMIN)
             return true;
 
@@ -90,10 +94,16 @@ public class FileAccessService implements OwnershipService<Long> {
     }
 
     private boolean isProfileOwner(FileAttachment a, Auth u) {
+        if (u == null) {
+            return false;
+        }
         return a.getOwner().getId().equals(u.getId());
     }
 
     private boolean isCourseOwner(FileAttachment a, Auth u) {
+        if (u == null) {
+            return false;
+        }
         Long resourceId = parseLongResourceId(a);
         if (resourceId == null)
             return false;
@@ -102,6 +112,9 @@ public class FileAccessService implements OwnershipService<Long> {
     }
 
     private boolean isLessonOwner(FileAttachment a, Auth u) {
+        if (u == null) {
+            return false;
+        }
         Long resourceId = parseLongResourceId(a);
         if (resourceId == null)
             return false;

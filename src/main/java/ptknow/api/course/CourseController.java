@@ -59,7 +59,7 @@ public class CourseController {
     @ApiResponse(responseCode = "200", description = "Курсы получены",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = PageResponseDTO.class)))
-    @PreAuthorize("hasAnyRole('GUEST', 'STUDENT', 'TEACHER', 'ADMIN')")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<PageResponseDTO<CourseDTO>> get(
             @AuthenticationPrincipal Auth auth,
             @RequestParam(defaultValue = "0") int page,
@@ -122,7 +122,7 @@ public class CourseController {
 
     @GetMapping("/id/{id}")
     @Operation(summary = "Получить курс по id", description = "Возвращает курс по id, если у текущего пользователя есть к нему доступ. Видимость зависит от состояния курса, ownership, editor-прав и enrollment.")
-    @PreAuthorize("hasAnyRole('GUEST', 'STUDENT', 'TEACHER', 'ADMIN')")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<CourseDTO> getCourse(
             @PathVariable Long id,
             @AuthenticationPrincipal Auth auth
@@ -133,7 +133,7 @@ public class CourseController {
 
     @GetMapping("/handle/{handle}")
     @Operation(summary = "Получить курс по handle", description = "Возвращает курс по handle, если у текущего пользователя есть к нему доступ. Видимость зависит от состояния курса, ownership, editor-прав и enrollment.")
-    @PreAuthorize("hasAnyRole('GUEST', 'STUDENT', 'TEACHER', 'ADMIN')")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<CourseDTO> getCourse(
             @PathVariable String handle,
             @AuthenticationPrincipal Auth auth

@@ -23,6 +23,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -60,6 +61,16 @@ public class SecurityConfig {
                                 "/v3/api-docs.yaml",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v0/course",
+                                "/api/v0/course/id/*",
+                                "/api/v0/course/handle/*",
+                                "/api/v0/lessons/*",
+                                "/api/v0/lessons/course/*",
+                                "/api/v0/profile/search",
+                                "/api/v0/profile/*",
+                                "/api/v0/files/*"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

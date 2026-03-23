@@ -7,11 +7,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import ptknow.dto.profile.ProfileResponseDTO;
-import ptknow.dto.profile.ProfileUpdateDTO;
-import ptknow.model.auth.Auth;
-import ptknow.mapper.profile.ProfileMapper;
-import ptknow.service.profile.ProfileService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +14,26 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import ptknow.api.exception.ApiError;
 import ptknow.dto.common.PageResponseDTO;
+import ptknow.dto.profile.ProfileResponseDTO;
+import ptknow.dto.profile.ProfileUpdateDTO;
+import ptknow.mapper.profile.ProfileMapper;
+import ptknow.model.auth.Auth;
+import ptknow.service.profile.ProfileService;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,33 +44,32 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @SecurityRequirement(name = "bearerAuth")
-@Tag(name = "Профиль", description = "Получение и изменение профиля пользователя")
+@Tag(name = "Profiles", description = "Profile read and update endpoints")
 public class ProfileController {
 
     ProfileService profileService;
     ProfileMapper profileMapper;
 
     @GetMapping
-    @Operation(summary = "Получить мой профиль", description = "Возвращает профиль текущего аутентифицированного пользователя.")
+    @Operation(summary = "Get my profile", description = "Returns the profile of the current authenticated user.")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ProfileResponseDTO> getMyProfile(@AuthenticationPrincipal Auth user) {
         var profile = profileService.getProfile(user.getId());
-        var dto = profileMapper.toDto(profile);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(profileMapper.toDto(profile));
     }
 
     @GetMapping("/me")
-    @Operation(summary = "Получить мой профиль через alias", description = "Синоним метода GET /api/v0/profile.")
+    @Operation(summary = "Get my profile via alias", description = "Alias for GET /api/v0/profile.")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ProfileResponseDTO> getMyProfileAlias(@AuthenticationPrincipal Auth user) {
         var profile = profileService.getProfile(user.getId());
-        var dto = profileMapper.toDto(profile);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(profileMapper.toDto(profile));
     }
 
     @GetMapping("/search")
-    @Operation(summary = "Search profiles", description = "Returns a paginated profile list for user search by full name or handle.")
+    @Operation(summary = "Search profiles", description = "Returns a paginated profile list filtered by full name or handle.")
     @ApiResponse(responseCode = "200", description = "Profiles returned",
-            content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = PageResponseDTO.class)))
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = PageResponseDTO.class)))
     public ResponseEntity<PageResponseDTO<ProfileResponseDTO>> searchProfiles(
             @AuthenticationPrincipal Auth user,
             @RequestParam(defaultValue = "0") int page,
@@ -84,69 +93,63 @@ public class ProfileController {
     }
 
     @GetMapping("/{handle}")
-    @Operation(summary = "Получить профиль по handle", description = "Возвращает профиль по handle. Несмотря на публичный путь, по текущей security-конфигурации требуется аутентификация.")
+    @Operation(summary = "Get profile by handle", description = "Returns a profile by handle.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Профиль получен",
+            @ApiResponse(responseCode = "200", description = "Profile returned",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProfileResponseDTO.class))),
-            @ApiResponse(responseCode = "404", description = "Профиль не найден",
+            @ApiResponse(responseCode = "404", description = "Profile not found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<ProfileResponseDTO> getProfileByHandle(@PathVariable String handle) {
         var profile = profileService.getByHandle(handle);
-        var dto = profileMapper.toDto(profile);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(profileMapper.toDto(profile));
     }
 
     @GetMapping("/id/{userId}")
-    @Operation(summary = "Получить профиль по id пользователя", description = "Возвращает профиль по id пользователя. Видимость дополнительно проверяется в service layer.")
+    @Operation(summary = "Get profile by user id", description = "Returns a profile by user id. Access is checked in service layer.")
     public ResponseEntity<ProfileResponseDTO> getProfileByUserId(
             @PathVariable UUID userId,
             @AuthenticationPrincipal Auth user
     ) {
         var profile = profileService.getProfile(userId, user);
-        var dto = profileMapper.toDto(profile);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(profileMapper.toDto(profile));
     }
 
     @PostMapping("/avatar")
-    @Operation(summary = "Загрузить или заменить аватар", description = "Загружает файл аватара для профиля текущего пользователя.")
+    @Operation(summary = "Upload or replace avatar", description = "Uploads an avatar file for the current authenticated user.")
     public ResponseEntity<ProfileResponseDTO> updateAvatar(
             @AuthenticationPrincipal Auth user,
             @RequestParam("file") MultipartFile file
     ) throws IOException {
         var updatedProfile = profileService.updateAvatar(user.getId(), file);
-        var dto = profileMapper.toDto(updatedProfile);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(profileMapper.toDto(updatedProfile));
     }
 
     @DeleteMapping("/avatar")
-    @Operation(summary = "Удалить аватар", description = "Удаляет аватар текущего пользователя.")
-    public ResponseEntity<Void> deleteAvatar(
-            @AuthenticationPrincipal Auth user
-    ) throws IOException {
+    @Operation(summary = "Delete avatar", description = "Deletes the avatar of the current authenticated user.")
+    public ResponseEntity<Void> deleteAvatar(@AuthenticationPrincipal Auth user) throws IOException {
         profileService.deleteAvatar(user.getId());
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping
-    @Operation(summary = "Полностью заменить профиль", description = "Полностью заменяет редактируемые поля профиля текущего пользователя.")
+    @Operation(summary = "Replace profile", description = "Fully replaces editable fields of the current authenticated user profile.")
     public ResponseEntity<ProfileResponseDTO> updateMyProfile(
             @AuthenticationPrincipal Auth user,
             @Valid @RequestBody ProfileUpdateDTO dto
     ) {
         var updated = profileService.update(user.getId(), dto);
-        var updatedDto = profileMapper.toDto(updated);
-        return ResponseEntity.ok(updatedDto);
+        return ResponseEntity.ok(profileMapper.toDto(updated));
     }
 
     @PatchMapping
-    @Operation(summary = "Частично обновить профиль", description = "Частично обновляет редактируемые поля профиля текущего пользователя.")
+    @Operation(summary = "Patch profile", description = "Partially updates editable fields of the current authenticated user profile.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Профиль обновлён",
+            @ApiResponse(responseCode = "200", description = "Profile updated",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProfileResponseDTO.class))),
-            @ApiResponse(responseCode = "400", description = "Ошибка валидации",
+            @ApiResponse(responseCode = "400", description = "Validation error",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "404", description = "Профиль не найден",
+            @ApiResponse(responseCode = "404", description = "Profile not found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<ProfileResponseDTO> patchMyProfile(
@@ -154,8 +157,7 @@ public class ProfileController {
             @Valid @RequestBody ProfileUpdateDTO dto
     ) {
         var updated = profileService.update(user.getId(), dto);
-        var updatedDto = profileMapper.toDto(updated);
-        return ResponseEntity.ok(updatedDto);
+        return ResponseEntity.ok(profileMapper.toDto(updated));
     }
 
     private Sort parseSort(String sort) {
@@ -178,4 +180,3 @@ public class ProfileController {
         return Sort.by(sortDirection, property);
     }
 }
-

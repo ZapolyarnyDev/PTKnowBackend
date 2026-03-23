@@ -57,7 +57,7 @@ public class FileController {
             @ApiResponse(responseCode = "404", description = "Файл не найден",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
     })
-    @PreAuthorize("hasAnyRole('GUEST', 'STUDENT', 'TEACHER', 'ADMIN')")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Resource> getFile(
             @PathVariable UUID id,
             @AuthenticationPrincipal Auth user

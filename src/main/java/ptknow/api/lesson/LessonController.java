@@ -70,7 +70,7 @@ public class LessonController {
 
     @GetMapping("/{lessonId}")
     @Operation(summary = "Get lesson by id", description = "Returns lesson details, markdown content and attached materials if the caller can access the parent course.")
-    @PreAuthorize("hasAnyRole('GUEST', 'STUDENT', 'TEACHER', 'ADMIN')")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<LessonDTO> getLesson(
             @PathVariable Long lessonId,
             @AuthenticationPrincipal Auth auth
@@ -84,7 +84,7 @@ public class LessonController {
     @ApiResponse(responseCode = "200", description = "Lessons returned",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = PageResponseDTO.class)))
-    @PreAuthorize("hasAnyRole('GUEST', 'STUDENT', 'TEACHER', 'ADMIN')")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<PageResponseDTO<LessonDTO>> getLessonsByCourse(
             @PathVariable Long courseId,
             @AuthenticationPrincipal Auth auth,
