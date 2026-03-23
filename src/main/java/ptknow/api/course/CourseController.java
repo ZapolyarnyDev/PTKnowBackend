@@ -71,9 +71,12 @@ public class CourseController {
     ) {
         var pageRequest = PageRequest.of(page, Math.min(size, 100), parseSort(sort));
         var result = courseService.findCoursesPage(auth, pageRequest, q, state, tag);
+        var courseIds = result.getContent().stream().map(Course::getId).collect(java.util.stream.Collectors.toSet());
+        var lessonCounts = courseService.countLessonsByCourseIds(courseIds);
+        var enrollmentCounts = courseService.countEnrollmentsByCourseIds(courseIds);
 
         var body = new PageResponseDTO<>(
-                result.getContent().stream().map(courseMapper::courseToDTO).toList(),
+                courseMapper.courseToDTOList(result.getContent(), lessonCounts, enrollmentCounts),
                 result.getNumber(),
                 result.getSize(),
                 result.getTotalElements(),

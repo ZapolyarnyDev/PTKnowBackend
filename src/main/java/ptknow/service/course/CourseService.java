@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,8 @@ import ptknow.generator.handle.HandleGenerator;
 import ptknow.repository.auth.AuthRepository;
 import ptknow.repository.course.CourseRepository;
 import ptknow.repository.course.CourseTagRepository;
+import ptknow.repository.enrollment.EnrollmentRepository;
+import ptknow.repository.lesson.LessonRepository;
 import ptknow.service.AccessService;
 import ptknow.service.HandleService;
 import ptknow.service.OwnershipService;
@@ -39,8 +42,10 @@ import ptknow.service.file.FileService;
 
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -54,6 +59,8 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
     AuthRepository authRepository;
     CourseRepository repository;
     CourseTagRepository courseTagRepository;
+    LessonRepository lessonRepository;
+    EnrollmentRepository enrollmentRepository;
     HandleGenerator handleGenerator;
     FileService fileService;
     FileAttachmentService fileAttachmentService;
@@ -230,13 +237,56 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
 
     @Transactional(readOnly = true)
     public Page<Course> findCoursesPage(Auth viewer, Pageable pageable, String q, CourseState state, String tag) {
-        return repository.findAll(
+        Page<Course> page = repository.findAll(
                 CourseSpecifications.visibleTo(viewer)
                         .and(CourseSpecifications.search(q))
                         .and(CourseSpecifications.hasState(state))
                         .and(CourseSpecifications.hasTag(tag)),
                 pageable
         );
+
+        if (page.isEmpty()) {
+            return page;
+        }
+
+        Set<Long> courseIds = page.getContent().stream()
+                .map(Course::getId)
+                .collect(Collectors.toSet());
+
+        Map<Long, Course> hydratedById = repository.findAllListViewByIdIn(courseIds).stream()
+                .collect(Collectors.toMap(Course::getId, course -> course, (left, right) -> left, LinkedHashMap::new));
+
+        List<Course> orderedContent = page.getContent().stream()
+                .map(course -> hydratedById.getOrDefault(course.getId(), course))
+                .toList();
+
+        return new PageImpl<>(orderedContent, pageable, page.getTotalElements());
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Long, Integer> countLessonsByCourseIds(Set<Long> courseIds) {
+        if (courseIds == null || courseIds.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<Long, Integer> result = new LinkedHashMap<>();
+        for (Object[] row : lessonRepository.countByCourseIds(courseIds)) {
+            result.put((Long) row[0], ((Long) row[1]).intValue());
+        }
+        return result;
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Long, Integer> countEnrollmentsByCourseIds(Set<Long> courseIds) {
+        if (courseIds == null || courseIds.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<Long, Integer> result = new LinkedHashMap<>();
+        for (Object[] row : enrollmentRepository.countByCourseIds(courseIds)) {
+            result.put((Long) row[0], ((Long) row[1]).intValue());
+        }
+        return result;
     }
 
     @Override

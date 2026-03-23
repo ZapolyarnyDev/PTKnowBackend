@@ -4,6 +4,7 @@ import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.repository.query.Param;
 import ptknow.model.course.Course;
 import ptknow.model.course.CourseState;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecificationExecutor<Course> {
@@ -27,6 +29,19 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select c from Course c where c.id = :id")
     Optional<Course> findByIdForUpdate(@Param("id") Long id);
+
+    @EntityGraph(attributePaths = {
+            "courseTags",
+            "preview",
+            "owner",
+            "owner.profile",
+            "owner.profile.avatar",
+            "editors",
+            "editors.profile",
+            "editors.profile.avatar"
+    })
+    @Query("select distinct c from Course c where c.id in :ids")
+    List<Course> findAllListViewByIdIn(@Param("ids") Set<Long> ids);
 
 }
 
