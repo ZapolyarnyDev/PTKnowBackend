@@ -29,6 +29,7 @@ public class EnrollmentService {
 
     EnrollmentRepository repository;
     CourseService courseService;
+    ptknow.service.course.CourseCacheService courseCacheService;
 
     @Transactional
     public Enrollment enroll(Auth initiator, Long courseId)
@@ -55,7 +56,9 @@ public class EnrollmentService {
         initiator.addEnrollment(enrollment);
 
         try {
-            return repository.save(enrollment);
+            Enrollment saved = repository.save(enrollment);
+            courseCacheService.evict(courseId);
+            return saved;
         } catch (DataIntegrityViolationException e) {
             if(isEnrolled(initiator, courseId))
                 throw new AlreadyEnrolledException(initiator.getId());
@@ -92,6 +95,7 @@ public class EnrollmentService {
     @Transactional
     public void unenroll(Auth auth, Long courseId) {
         repository.deleteByUser_IdAndCourse_Id(auth.getId(), courseId);
+        courseCacheService.evict(courseId);
     }
 
     @Transactional(readOnly = true)

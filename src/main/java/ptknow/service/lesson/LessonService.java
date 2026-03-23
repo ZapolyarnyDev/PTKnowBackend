@@ -48,6 +48,7 @@ public class LessonService implements OwnershipService<Long>, AccessService<Long
     CourseAccessService accessService;
     FileService fileService;
     FileAttachmentService fileAttachmentService;
+    ptknow.service.course.CourseCacheService courseCacheService;
 
     @Transactional
     public Lesson createLesson(Long courseId, Auth initiator, CreateLessonDTO dto) throws LessonCannotBeCreatedException {
@@ -69,7 +70,9 @@ public class LessonService implements OwnershipService<Long>, AccessService<Long
 
         initiator.addOwnedLesson(entity);
 
-        return lessonRepository.save(entity);
+        Lesson saved = lessonRepository.save(entity);
+        courseCacheService.evict(courseId);
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -135,6 +138,7 @@ public class LessonService implements OwnershipService<Long>, AccessService<Long
             throw new LessonNotOwnedException(initiator.getId());
 
         cleanupLessonFiles(id);
+        courseCacheService.evict(lesson.getCourse().getId());
         lessonRepository.delete(lesson);
     }
 

@@ -17,6 +17,7 @@ import ptknow.model.course.Course;
 import ptknow.model.course.CourseState;
 import ptknow.model.enrollment.Enrollment;
 import ptknow.repository.enrollment.EnrollmentRepository;
+import ptknow.service.course.CourseCacheService;
 import ptknow.service.course.CourseService;
 
 import java.time.Instant;
@@ -41,6 +42,9 @@ class EnrollmentServiceTest {
 
     @Mock
     CourseService courseService;
+
+    @Mock
+    CourseCacheService courseCacheService;
 
     @InjectMocks
     EnrollmentService enrollmentService;

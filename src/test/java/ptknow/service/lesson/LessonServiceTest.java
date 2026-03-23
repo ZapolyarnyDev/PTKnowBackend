@@ -27,6 +27,7 @@ import ptknow.model.lesson.LessonState;
 import ptknow.model.lesson.LessonType;
 import ptknow.repository.lesson.LessonRepository;
 import ptknow.service.course.CourseAccessService;
+import ptknow.service.course.CourseCacheService;
 import ptknow.service.course.CourseService;
 import ptknow.service.file.FileAttachmentService;
 import ptknow.service.file.FileService;
@@ -65,6 +66,9 @@ class LessonServiceTest {
 
     @Mock
     FileAttachmentService fileAttachmentService;
+
+    @Mock
+    CourseCacheService courseCacheService;
 
     @InjectMocks
     LessonService lessonService;

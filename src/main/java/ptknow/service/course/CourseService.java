@@ -65,6 +65,7 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
     FileService fileService;
     FileAttachmentService fileAttachmentService;
     CourseAccessService accessService;
+    CourseCacheService courseCacheService;
 
     @Transactional(rollbackFor = Exception.class)
     public Course publishCourse(CreateCourseDTO dto, Auth initiator, MultipartFile preview) throws IOException {
@@ -170,6 +171,8 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
                 courseTagRepository.delete(tag);
             }
         }
+
+        courseCacheService.evict(courseId, course.getHandle());
     }
 
     @Transactional(readOnly = true)
@@ -217,6 +220,7 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
             fileService.deleteFile(previousPreview.getId());
         }
 
+        courseCacheService.evict(updatedCourse);
         return updatedCourse;
     }
 
@@ -304,6 +308,24 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
         return accessService.access(courseId, initiator);
     }
 
+    @Transactional(readOnly = true)
+    public ptknow.dto.course.CourseDTO seeDtoByHandle(String handle, Auth initiator) {
+        Course course = seeByHandle(handle, initiator);
+        if (course.getState() == CourseState.PUBLISHED) {
+            return courseCacheService.getPublishedByHandle(course.getHandle());
+        }
+        return courseCacheService.toDto(course.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public ptknow.dto.course.CourseDTO seeDtoById(Long courseId, Auth initiator) {
+        Course course = seeById(courseId, initiator);
+        if (course.getState() == CourseState.PUBLISHED) {
+            return courseCacheService.getPublishedById(course.getId());
+        }
+        return courseCacheService.toDto(course.getId());
+    }
+
     @Override
     public boolean isOwner(Long resourceId, Auth auth) {
         return repository.existsByIdAndOwner_Id(resourceId, auth.getId());
@@ -330,7 +352,9 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
         course.addEditor(target);
 
         authRepository.save(target);
-        return repository.save(course);
+        Course saved = repository.save(course);
+        courseCacheService.evict(saved);
+        return saved;
     }
 
 
@@ -345,7 +369,9 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
         course.removeEditor(target);
 
         authRepository.save(target);
-        return repository.save(course);
+        Course saved = repository.save(course);
+        courseCacheService.evict(saved);
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -390,7 +416,9 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
         course.addEditor(target);
 
         authRepository.save(target);
-        return repository.save(course);
+        Course saved = repository.save(course);
+        courseCacheService.evict(saved);
+        return saved;
     }
 
     @Transactional
@@ -408,7 +436,9 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
         course.removeEditor(target);
 
         authRepository.save(target);
-        return repository.save(course);
+        Course saved = repository.save(course);
+        courseCacheService.evict(saved);
+        return saved;
     }
 
     @Transactional
@@ -418,7 +448,9 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
 
         course.setState(CourseState.PUBLISHED);
         syncPreviewVisibility(course);
-        return repository.save(course);
+        Course saved = repository.save(course);
+        courseCacheService.evict(saved);
+        return saved;
     }
 
     @Transactional
@@ -428,7 +460,9 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
 
         course.setState(CourseState.ARCHIVED);
         syncPreviewVisibility(course);
-        return repository.save(course);
+        Course saved = repository.save(course);
+        courseCacheService.evict(saved);
+        return saved;
     }
 
     @Transactional
@@ -457,6 +491,7 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
 
         Course saved = repository.save(course);
         cleanupUnusedTags(previousTags);
+        courseCacheService.evict(saved);
         return saved;
     }
 
@@ -474,6 +509,7 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
 
         Course saved = repository.save(course);
         cleanupUnusedTags(previousTags);
+        courseCacheService.evict(saved);
         return saved;
     }
 

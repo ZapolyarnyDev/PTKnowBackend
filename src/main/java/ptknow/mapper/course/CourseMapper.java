@@ -19,9 +19,13 @@ public class CourseMapper {
         return courseToDTO(entity, entity.getLessons().size(), entity.getEnrollments().size());
     }
 
+    public CourseDTO courseToDTO(Course entity, int lessonsCount, int studentsCount) {
+        return courseToDTOInternal(entity, lessonsCount, studentsCount);
+    }
+
     public List<CourseDTO> courseToDTOList(List<Course> courses, Map<Long, Integer> lessonCounts, Map<Long, Integer> enrollmentCounts) {
         return courses.stream()
-                .map(course -> courseToDTO(
+                .map(course -> courseToDTOInternal(
                         course,
                         lessonCounts.getOrDefault(course.getId(), 0),
                         enrollmentCounts.getOrDefault(course.getId(), 0)
@@ -29,7 +33,7 @@ public class CourseMapper {
                 .toList();
     }
 
-    private CourseDTO courseToDTO(Course entity, int lessonsCount, int studentsCount) {
+    private CourseDTO courseToDTOInternal(Course entity, int lessonsCount, int studentsCount) {
         return new CourseDTO(
                 entity.getId(),
                 entity.getName(),

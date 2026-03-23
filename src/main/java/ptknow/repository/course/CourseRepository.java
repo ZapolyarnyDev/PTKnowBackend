@@ -43,5 +43,31 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
     @Query("select distinct c from Course c where c.id in :ids")
     List<Course> findAllListViewByIdIn(@Param("ids") Set<Long> ids);
 
+    @EntityGraph(attributePaths = {
+            "courseTags",
+            "preview",
+            "owner",
+            "owner.profile",
+            "owner.profile.avatar",
+            "editors",
+            "editors.profile",
+            "editors.profile.avatar"
+    })
+    @Query("select c from Course c where c.id = :id")
+    Optional<Course> findViewById(@Param("id") Long id);
+
+    @EntityGraph(attributePaths = {
+            "courseTags",
+            "preview",
+            "owner",
+            "owner.profile",
+            "owner.profile.avatar",
+            "editors",
+            "editors.profile",
+            "editors.profile.avatar"
+    })
+    @Query("select c from Course c where c.handle = :handle")
+    Optional<Course> findViewByHandle(@Param("handle") String handle);
+
 }
 

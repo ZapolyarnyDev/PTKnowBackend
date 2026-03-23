@@ -8,38 +8,60 @@ import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ptknow.properties.CourseCacheProperties;
 import ptknow.properties.ProfileCacheProperties;
 
 import java.util.List;
 
 @Configuration
 @EnableCaching
-@EnableConfigurationProperties(ProfileCacheProperties.class)
+@EnableConfigurationProperties({ProfileCacheProperties.class, CourseCacheProperties.class})
 public class CacheConfig {
 
     public static final String PROFILE_BY_HANDLE_CACHE = "profileByHandle";
     public static final String PROFILE_SEARCH_CACHE = "profileSearch";
+    public static final String COURSE_BY_ID_CACHE = "courseById";
+    public static final String COURSE_BY_HANDLE_CACHE = "courseByHandle";
 
     @Bean
-    public CacheManager cacheManager(ProfileCacheProperties properties) {
+    public CacheManager cacheManager(
+            ProfileCacheProperties profileCacheProperties,
+            CourseCacheProperties courseCacheProperties
+    ) {
         CaffeineCache profileByHandle = new CaffeineCache(
                 PROFILE_BY_HANDLE_CACHE,
                 Caffeine.newBuilder()
-                        .maximumSize(properties.getByHandleMaxSize())
-                        .expireAfterWrite(properties.getByHandleTtl())
+                        .maximumSize(profileCacheProperties.getByHandleMaxSize())
+                        .expireAfterWrite(profileCacheProperties.getByHandleTtl())
                         .build()
         );
 
         CaffeineCache profileSearch = new CaffeineCache(
                 PROFILE_SEARCH_CACHE,
                 Caffeine.newBuilder()
-                        .maximumSize(properties.getSearchMaxSize())
-                        .expireAfterWrite(properties.getSearchTtl())
+                        .maximumSize(profileCacheProperties.getSearchMaxSize())
+                        .expireAfterWrite(profileCacheProperties.getSearchTtl())
+                        .build()
+        );
+
+        CaffeineCache courseById = new CaffeineCache(
+                COURSE_BY_ID_CACHE,
+                Caffeine.newBuilder()
+                        .maximumSize(courseCacheProperties.getByIdMaxSize())
+                        .expireAfterWrite(courseCacheProperties.getByIdTtl())
+                        .build()
+        );
+
+        CaffeineCache courseByHandle = new CaffeineCache(
+                COURSE_BY_HANDLE_CACHE,
+                Caffeine.newBuilder()
+                        .maximumSize(courseCacheProperties.getByHandleMaxSize())
+                        .expireAfterWrite(courseCacheProperties.getByHandleTtl())
                         .build()
         );
 
         SimpleCacheManager cacheManager = new SimpleCacheManager();
-        cacheManager.setCaches(List.of(profileByHandle, profileSearch));
+        cacheManager.setCaches(List.of(profileByHandle, profileSearch, courseById, courseByHandle));
         return cacheManager;
     }
 }

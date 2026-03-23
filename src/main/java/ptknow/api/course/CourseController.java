@@ -127,7 +127,7 @@ public class CourseController {
             @PathVariable Long id,
             @AuthenticationPrincipal Auth auth
     ) {
-        CourseDTO course = courseMapper.courseToDTO(courseService.seeById(id, auth));
+        CourseDTO course = courseService.seeDtoById(id, auth);
         return ResponseEntity.ok(course);
     }
 
@@ -138,7 +138,7 @@ public class CourseController {
             @PathVariable String handle,
             @AuthenticationPrincipal Auth auth
     ) {
-        CourseDTO course = courseMapper.courseToDTO(courseService.seeByHandle(handle, auth));
+        CourseDTO course = courseService.seeDtoByHandle(handle, auth);
         return ResponseEntity.ok(course);
     }
 
