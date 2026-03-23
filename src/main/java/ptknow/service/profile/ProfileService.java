@@ -14,6 +14,8 @@ import ptknow.service.file.FileService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.access.AccessDeniedException;
@@ -135,6 +137,15 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
     public Profile getProfile(UUID userId) {
         return repository.findByUserId(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Profile> search(Auth initiator, Pageable pageable, String q) {
+        if (!canSeeProfile(initiator)) {
+            throw new AccessDeniedException("You don't have permissions to view profiles");
+        }
+
+        return repository.findAll(ProfileSpecifications.search(q), pageable);
     }
 
     @Override
