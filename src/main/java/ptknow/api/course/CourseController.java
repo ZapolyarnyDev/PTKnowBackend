@@ -8,8 +8,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import ptknow.dto.common.PageResponseDTO;
 import ptknow.dto.course.CourseDTO;
 import ptknow.dto.course.CourseTeacherDTO;
 import ptknow.dto.course.CreateCourseDTO;
@@ -19,6 +22,7 @@ import ptknow.dto.enrollment.EnrollmentDTO;
 import ptknow.mapper.enrollment.EnrollmentMapper;
 import ptknow.model.auth.Auth;
 import ptknow.model.course.Course;
+import ptknow.model.course.CourseState;
 import ptknow.mapper.course.CourseMapper;
 import ptknow.model.enrollment.Enrollment;
 import ptknow.service.course.CourseService;
@@ -54,13 +58,50 @@ public class CourseController {
     @Operation(summary = "Получить список доступных курсов", description = "Возвращает курсы, видимые текущему пользователю. Анонимный доступ не разрешён security-конфигурацией. Для non-admin это опубликованные курсы и курсы, доступные по ownership/editor/enrollment-правилам.")
     @ApiResponse(responseCode = "200", description = "Курсы получены",
             content = @Content(mediaType = "application/json",
-                    array = @ArraySchema(schema = @Schema(implementation = CourseDTO.class))))
+                    schema = @Schema(implementation = PageResponseDTO.class)))
     @PreAuthorize("hasAnyRole('GUEST', 'STUDENT', 'TEACHER', 'ADMIN')")
-    public ResponseEntity<List<CourseDTO>> get(@AuthenticationPrincipal Auth auth) {
-        List<CourseDTO> courseDTOS = courseService.findAllCourses(auth).stream()
-                .map(courseMapper::courseToDTO)
-                .toList();
-        return ResponseEntity.ok(courseDTOS);
+    public ResponseEntity<PageResponseDTO<CourseDTO>> get(
+            @AuthenticationPrincipal Auth auth,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "id,desc") String sort,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) CourseState state,
+            @RequestParam(required = false) String tag
+    ) {
+        var pageRequest = PageRequest.of(page, Math.min(size, 100), parseSort(sort));
+        var result = courseService.findCoursesPage(auth, pageRequest, q, state, tag);
+
+        var body = new PageResponseDTO<>(
+                result.getContent().stream().map(courseMapper::courseToDTO).toList(),
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalElements(),
+                result.getTotalPages(),
+                result.hasNext()
+        );
+
+        return ResponseEntity.ok(body);
+    }
+
+    private Sort parseSort(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return Sort.by(Sort.Direction.DESC, "id");
+        }
+
+        String[] parts = sort.split(",", 2);
+        String property = parts[0].trim();
+        String direction = parts.length > 1 ? parts[1].trim() : "asc";
+
+        if (!List.of("id", "name", "state").contains(property)) {
+            property = "id";
+        }
+
+        Sort.Direction sortDirection = "desc".equalsIgnoreCase(direction)
+                ? Sort.Direction.DESC
+                : Sort.Direction.ASC;
+
+        return Sort.by(sortDirection, property);
     }
 
     @PostMapping

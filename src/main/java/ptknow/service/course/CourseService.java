@@ -3,6 +3,8 @@ package ptknow.service.course;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -224,6 +226,17 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
         return repository.findAll().stream()
                 .filter(course -> course.getState() == CourseState.PUBLISHED || accessService.canSee(course, viewer))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Course> findCoursesPage(Auth viewer, Pageable pageable, String q, CourseState state, String tag) {
+        return repository.findAll(
+                CourseSpecifications.visibleTo(viewer)
+                        .and(CourseSpecifications.search(q))
+                        .and(CourseSpecifications.hasState(state))
+                        .and(CourseSpecifications.hasTag(tag)),
+                pageable
+        );
     }
 
     @Override
