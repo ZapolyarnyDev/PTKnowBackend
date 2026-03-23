@@ -243,7 +243,7 @@ class LessonServiceTest {
         when(lessonRepository.findById(lesson.getId())).thenReturn(Optional.of(lesson));
 
         assertThrows(LessonNotOwnedException.class, () -> lessonService.deleteById(lesson.getId(), outsider));
-        verify(lessonRepository, never()).delete(any());
+        verify(lessonRepository, never()).delete(any(Lesson.class));
     }
 
     @Test

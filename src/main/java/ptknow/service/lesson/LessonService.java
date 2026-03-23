@@ -14,6 +14,8 @@ import ptknow.model.file.attachment.FileVisibility;
 import ptknow.model.file.attachment.resource.Purpose;
 import ptknow.model.file.attachment.resource.ResourceType;
 import ptknow.model.lesson.Lesson;
+import ptknow.model.lesson.LessonState;
+import ptknow.model.lesson.LessonType;
 import ptknow.exception.lesson.LessonNotFoundException;
 import ptknow.repository.lesson.LessonRepository;
 import ptknow.service.AccessService;
@@ -25,11 +27,14 @@ import ptknow.service.file.FileService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -94,6 +99,32 @@ public class LessonService implements OwnershipService<Long>, AccessService<Long
             throw new NotAllowedToSeeLessonInfo(initiator.getId());
 
         return lessonRepository.getAllByCourse_Id(courseId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Lesson> findPageByCourse(
+            Long courseId,
+            Auth initiator,
+            Pageable pageable,
+            String q,
+            LessonState state,
+            LessonType type,
+            Instant from,
+            Instant to
+    ) {
+        if (!accessService.canSee(courseId, initiator)) {
+            throw new NotAllowedToSeeLessonInfo(initiator.getId());
+        }
+
+        return lessonRepository.findAll(
+                LessonSpecifications.byCourseId(courseId)
+                        .and(LessonSpecifications.search(q))
+                        .and(LessonSpecifications.hasState(state))
+                        .and(LessonSpecifications.hasType(type))
+                        .and(LessonSpecifications.beginsFrom(from))
+                        .and(LessonSpecifications.beginsTo(to)),
+                pageable
+        );
     }
 
     @Transactional(rollbackFor = Exception.class)
