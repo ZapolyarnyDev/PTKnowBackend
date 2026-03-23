@@ -68,3 +68,15 @@ security:
     refresh:
       max-requests: ${SECURITY_RATE_LIMIT_REFRESH_MAX:30}
       window: ${SECURITY_RATE_LIMIT_REFRESH_WINDOW:PT1M}
+    public-course-list:
+      max-requests: ${SECURITY_RATE_LIMIT_PUBLIC_COURSE_LIST_MAX:60}
+      window: ${SECURITY_RATE_LIMIT_PUBLIC_COURSE_LIST_WINDOW:PT1M}
+    public-course-read:
+      max-requests: ${SECURITY_RATE_LIMIT_PUBLIC_COURSE_READ_MAX:120}
+      window: ${SECURITY_RATE_LIMIT_PUBLIC_COURSE_READ_WINDOW:PT1M}
+    public-lesson-read:
+      max-requests: ${SECURITY_RATE_LIMIT_PUBLIC_LESSON_READ_MAX:180}
+      window: ${SECURITY_RATE_LIMIT_PUBLIC_LESSON_READ_WINDOW:PT1M}
+    public-profile-search:
+      max-requests: ${SECURITY_RATE_LIMIT_PUBLIC_PROFILE_SEARCH_MAX:30}
+      window: ${SECURITY_RATE_LIMIT_PUBLIC_PROFILE_SEARCH_WINDOW:PT1M}

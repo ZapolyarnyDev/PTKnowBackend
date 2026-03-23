@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import ptknow.api.exception.ApiErrorResponseWriter;
 import ptknow.properties.AuthRateLimitProperties;
@@ -26,27 +27,35 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
     static String LOGIN_PATH = "/api/v0/auth/login";
     static String REGISTER_PATH = "/api/v0/auth/register";
     static String REFRESH_PATH = "/api/v0/token/refresh";
+    static String COURSE_LIST_PATH = "/api/v0/course";
+    static String COURSE_ID_PATH = "/api/v0/course/id/*";
+    static String COURSE_HANDLE_PATH = "/api/v0/course/handle/*";
+    static String LESSON_ID_PATH = "/api/v0/lessons/*";
+    static String LESSON_COURSE_PATH = "/api/v0/lessons/course/*";
+    static String PROFILE_SEARCH_PATH = "/api/v0/profile/search";
 
     AuthRateLimitProperties properties;
     ApiErrorResponseWriter errorResponseWriter;
 
     Map<String, Counter> counters = new ConcurrentHashMap<>();
+    AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        if (!Boolean.TRUE.equals(properties.getEnabled()) || !"POST".equalsIgnoreCase(request.getMethod())) {
+        if (!Boolean.TRUE.equals(properties.getEnabled())) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        Rule rule = resolveRule(request.getServletPath());
+        ResolvedRule resolvedRule = resolveRule(request);
+        Rule rule = resolvedRule != null ? resolvedRule.rule() : null;
         if (rule == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String key = request.getServletPath() + "|" + resolveClientIp(request);
+        String key = resolvedRule.key() + "|" + resolveClientIp(request);
         Counter counter = counters.computeIfAbsent(key, k -> new Counter());
 
         long now = System.currentTimeMillis();
@@ -67,15 +76,35 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private Rule resolveRule(String path) {
-        if (LOGIN_PATH.equals(path)) {
-            return ruleOf(properties.getLogin());
+    private ResolvedRule resolveRule(HttpServletRequest request) {
+        String path = request.getServletPath();
+        String method = request.getMethod();
+
+        if ("POST".equalsIgnoreCase(method) && LOGIN_PATH.equals(path)) {
+            return new ResolvedRule("auth:login", ruleOf(properties.getLogin()));
         }
-        if (REGISTER_PATH.equals(path)) {
-            return ruleOf(properties.getRegister());
+        if ("POST".equalsIgnoreCase(method) && REGISTER_PATH.equals(path)) {
+            return new ResolvedRule("auth:register", ruleOf(properties.getRegister()));
         }
-        if (REFRESH_PATH.equals(path)) {
-            return ruleOf(properties.getRefresh());
+        if ("POST".equalsIgnoreCase(method) && REFRESH_PATH.equals(path)) {
+            return new ResolvedRule("auth:refresh", ruleOf(properties.getRefresh()));
+        }
+
+        if (!"GET".equalsIgnoreCase(method) || isAuthenticatedRequest(request)) {
+            return null;
+        }
+
+        if (COURSE_LIST_PATH.equals(path)) {
+            return new ResolvedRule("public:course-list", ruleOf(properties.getPublicCourseList()));
+        }
+        if (pathMatcher.match(COURSE_ID_PATH, path) || pathMatcher.match(COURSE_HANDLE_PATH, path)) {
+            return new ResolvedRule("public:course-read", ruleOf(properties.getPublicCourseRead()));
+        }
+        if (pathMatcher.match(LESSON_ID_PATH, path) || pathMatcher.match(LESSON_COURSE_PATH, path)) {
+            return new ResolvedRule("public:lesson-read", ruleOf(properties.getPublicLessonRead()));
+        }
+        if (PROFILE_SEARCH_PATH.equals(path)) {
+            return new ResolvedRule("public:profile-search", ruleOf(properties.getPublicProfileSearch()));
         }
         return null;
     }
@@ -93,7 +122,15 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
         return (idx > 0 ? header.substring(0, idx) : header).trim();
     }
 
+    private boolean isAuthenticatedRequest(HttpServletRequest request) {
+        String authorization = request.getHeader("Authorization");
+        return authorization != null && !authorization.isBlank();
+    }
+
     record Rule(int maxRequests, Duration window) {
+    }
+
+    record ResolvedRule(String key, Rule rule) {
     }
 
     static class Counter {

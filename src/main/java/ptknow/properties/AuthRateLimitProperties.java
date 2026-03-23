@@ -36,6 +36,22 @@ public class AuthRateLimitProperties {
     @NotNull
     Rule refresh = new Rule(30, Duration.ofMinutes(1));
 
+    @Valid
+    @NotNull
+    Rule publicCourseList = new Rule(60, Duration.ofMinutes(1));
+
+    @Valid
+    @NotNull
+    Rule publicCourseRead = new Rule(120, Duration.ofMinutes(1));
+
+    @Valid
+    @NotNull
+    Rule publicLessonRead = new Rule(180, Duration.ofMinutes(1));
+
+    @Valid
+    @NotNull
+    Rule publicProfileSearch = new Rule(30, Duration.ofMinutes(1));
+
     @Getter
     @Setter
     @FieldDefaults(level = AccessLevel.PRIVATE)

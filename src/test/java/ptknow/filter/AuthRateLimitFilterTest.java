@@ -22,6 +22,8 @@ class AuthRateLimitFilterTest {
         properties = new AuthRateLimitProperties();
         properties.setEnabled(true);
         properties.getLogin().setMaxRequests(1);
+        properties.getPublicCourseList().setMaxRequests(1);
+        properties.getPublicProfileSearch().setMaxRequests(1);
         filter = new AuthRateLimitFilter(
                 properties,
                 new ApiErrorResponseWriter(new ObjectMapper())
@@ -57,8 +59,45 @@ class AuthRateLimitFilterTest {
         assertEquals(200, response.getStatus());
     }
 
+    @Test
+    void shouldRateLimitAnonymousCourseCatalogRequests() throws Exception {
+        MockHttpServletRequest firstRequest = getRequest("/api/v0/course", "127.0.0.1");
+        MockHttpServletResponse firstResponse = new MockHttpServletResponse();
+        filter.doFilter(firstRequest, firstResponse, new MockFilterChain());
+
+        MockHttpServletRequest secondRequest = getRequest("/api/v0/course", "127.0.0.1");
+        MockHttpServletResponse secondResponse = new MockHttpServletResponse();
+        filter.doFilter(secondRequest, secondResponse, new MockFilterChain());
+
+        assertEquals(200, firstResponse.getStatus());
+        assertEquals(429, secondResponse.getStatus());
+    }
+
+    @Test
+    void shouldSkipPublicReadLimiterForAuthenticatedRequest() throws Exception {
+        MockHttpServletRequest firstRequest = getRequest("/api/v0/course", "127.0.0.1");
+        firstRequest.addHeader("Authorization", "Bearer token");
+        MockHttpServletResponse firstResponse = new MockHttpServletResponse();
+        filter.doFilter(firstRequest, firstResponse, new MockFilterChain());
+
+        MockHttpServletRequest secondRequest = getRequest("/api/v0/course", "127.0.0.1");
+        secondRequest.addHeader("Authorization", "Bearer token");
+        MockHttpServletResponse secondResponse = new MockHttpServletResponse();
+        filter.doFilter(secondRequest, secondResponse, new MockFilterChain());
+
+        assertEquals(200, firstResponse.getStatus());
+        assertEquals(200, secondResponse.getStatus());
+    }
+
     private MockHttpServletRequest request(String path, String remoteAddr) {
         MockHttpServletRequest request = new MockHttpServletRequest("POST", path);
+        request.setServletPath(path);
+        request.setRemoteAddr(remoteAddr);
+        return request;
+    }
+
+    private MockHttpServletRequest getRequest(String path, String remoteAddr) {
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", path);
         request.setServletPath(path);
         request.setRemoteAddr(remoteAddr);
         return request;
