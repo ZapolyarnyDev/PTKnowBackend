@@ -15,7 +15,7 @@ public interface ProfileMapper {
     @Named("mapAvatarIdToUrl")
     default String mapAvatarIdToUrl(java.util.UUID avatarId) {
         if (avatarId == null) return null;
-        return "/v0/files/" + avatarId;
+        return "/api/v0/files/" + avatarId;
     }
 }
 

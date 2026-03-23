@@ -43,7 +43,7 @@ class JwtAuthFilterTest {
     @Test
     void shouldRejectBlockedUserAccessToken() throws Exception {
         JwtAuthFilter filter = new JwtAuthFilter(jwtDecoder, authService, authenticationEntryPoint);
-        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/v0/profile");
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v0/profile");
         request.addHeader("Authorization", "Bearer access-token");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -59,7 +59,7 @@ class JwtAuthFilterTest {
     @Test
     void shouldRejectTokenWithWrongType() throws Exception {
         JwtAuthFilter filter = new JwtAuthFilter(jwtDecoder, authService, authenticationEntryPoint);
-        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/v0/profile");
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v0/profile");
         request.addHeader("Authorization", "Bearer refresh-token");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -82,7 +82,7 @@ class JwtAuthFilterTest {
     @Test
     void shouldAuthenticateValidAccessToken() throws Exception {
         JwtAuthFilter filter = new JwtAuthFilter(jwtDecoder, authService, authenticationEntryPoint);
-        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/v0/profile");
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v0/profile");
         request.addHeader("Authorization", "Bearer access-token");
         MockHttpServletResponse response = new MockHttpServletResponse();
         Auth user = auth(UserStatus.ACTIVE);

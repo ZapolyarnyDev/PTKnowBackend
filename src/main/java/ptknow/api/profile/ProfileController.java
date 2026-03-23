@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/v0/profile")
+@RequestMapping("/api/v0/profile")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @SecurityRequirement(name = "bearerAuth")
@@ -45,7 +45,7 @@ public class ProfileController {
     }
 
     @GetMapping("/me")
-    @Operation(summary = "Получить мой профиль через alias", description = "Синоним метода GET /v0/profile.")
+    @Operation(summary = "Получить мой профиль через alias", description = "Синоним метода GET /api/v0/profile.")
     public ResponseEntity<ProfileResponseDTO> getMyProfileAlias(@AuthenticationPrincipal Auth user) {
         var profile = profileService.getProfile(user.getId());
         var dto = profileMapper.toDto(profile);

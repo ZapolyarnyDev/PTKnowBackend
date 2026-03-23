@@ -22,7 +22,7 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("PTKnow API")
                         .version("v0.11.2")
-                        .description("REST API платформы PTKnow. Access token передаётся в заголовке Authorization Bearer. Refresh token хранится в HttpOnly-cookie и используется только на /v0/token/refresh.")
+                        .description("REST API платформы PTKnow. Access token передаётся в заголовке Authorization Bearer. Refresh token хранится в HttpOnly-cookie и используется только на /api/v0/token/refresh.")
                         .contact(new Contact().name("PTKnow")))
                 .tags(List.of(
                         new Tag().name("Аутентификация").description("Регистрация, вход, выход и обновление access token."),

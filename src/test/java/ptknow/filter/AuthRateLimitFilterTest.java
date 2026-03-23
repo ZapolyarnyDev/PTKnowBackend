@@ -32,11 +32,11 @@ class AuthRateLimitFilterTest {
     void shouldReturnTooManyRequestsWhenLimitIsExceeded() throws Exception {
         MockFilterChain chain = new MockFilterChain();
 
-        MockHttpServletRequest firstRequest = request("/v0/auth/login", "127.0.0.1");
+        MockHttpServletRequest firstRequest = request("/api/v0/auth/login", "127.0.0.1");
         MockHttpServletResponse firstResponse = new MockHttpServletResponse();
         filter.doFilter(firstRequest, firstResponse, chain);
 
-        MockHttpServletRequest secondRequest = request("/v0/auth/login", "127.0.0.1");
+        MockHttpServletRequest secondRequest = request("/api/v0/auth/login", "127.0.0.1");
         MockHttpServletResponse secondResponse = new MockHttpServletResponse();
         filter.doFilter(secondRequest, secondResponse, new MockFilterChain());
 
@@ -48,7 +48,7 @@ class AuthRateLimitFilterTest {
 
     @Test
     void shouldSkipNonProtectedPaths() throws Exception {
-        MockHttpServletRequest request = request("/v0/profile", "127.0.0.1");
+        MockHttpServletRequest request = request("/api/v0/profile", "127.0.0.1");
         MockHttpServletResponse response = new MockHttpServletResponse();
         MockFilterChain chain = new MockFilterChain();
 

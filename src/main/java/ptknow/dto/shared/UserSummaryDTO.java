@@ -20,7 +20,7 @@ public record UserSummaryDTO(
         String handle,
         @Schema(example = "Ivan Petrov")
         String fullName,
-        @Schema(example = "/v0/files/550e8400-e29b-41d4-a716-446655440000")
+        @Schema(example = "/api/v0/files/550e8400-e29b-41d4-a716-446655440000")
         String avatarUrl
 ) {
 }

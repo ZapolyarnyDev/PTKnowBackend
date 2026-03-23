@@ -21,7 +21,7 @@ public record FileMetaDTO(
         Long size,
         @Schema(example = "2026-03-22T01:15:00Z")
         Instant uploadedAt,
-        @Schema(example = "/v0/files/550e8400-e29b-41d4-a716-446655440000")
+        @Schema(example = "/api/v0/files/550e8400-e29b-41d4-a716-446655440000")
         String downloadUrl,
         @Schema(example = "MATERIAL")
         Purpose purpose,

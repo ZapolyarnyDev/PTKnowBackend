@@ -24,7 +24,7 @@ import ptknow.jwt.JwtTokens;
 import ptknow.service.auth.JwtService;
 
 @RestController
-@RequestMapping("/v0/token")
+@RequestMapping("/api/v0/token")
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "Аутентификация", description = "Жизненный цикл токенов")
@@ -54,7 +54,7 @@ public class TokenController {
     ) {
         JwtTokens tokens = jwtService.refresh(refreshToken);
 
-        ResponseCookie cookie = jwtService.tokenToCookie("/v0/token/refresh", tokens.refreshToken());
+        ResponseCookie cookie = jwtService.tokenToCookie("/api/v0/token/refresh", tokens.refreshToken());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())

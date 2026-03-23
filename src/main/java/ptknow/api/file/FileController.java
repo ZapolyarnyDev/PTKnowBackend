@@ -36,7 +36,7 @@ import java.nio.file.Files;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/v0/files")
+@RequestMapping("/api/v0/files")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @SecurityRequirement(name = "bearerAuth")

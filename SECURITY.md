@@ -97,73 +97,73 @@ unenroll - отмена записи субъекта на ресурс
 
 ### AuthController
 
-- `POST /v0/auth/register` - `ANONYMOUS` - `Сделано`
-- `POST /v0/auth/login` - `ANONYMOUS` - `Сделано`
-- `POST /v0/auth/logout` - любой аутентифицированный пользователь: `GUEST`, `STUDENT`, `TEACHER`, `ADMIN` - `Сделано`
+- `POST /api/v0/auth/register` - `ANONYMOUS` - `Сделано`
+- `POST /api/v0/auth/login` - `ANONYMOUS` - `Сделано`
+- `POST /api/v0/auth/logout` - любой аутентифицированный пользователь: `GUEST`, `STUDENT`, `TEACHER`, `ADMIN` - `Сделано`
 
 ### TokenController
 
-- `POST /v0/token/refresh` - `ANONYMOUS` или аутентифицированный пользователь с валидным refresh token - `Сделано`
+- `POST /api/v0/token/refresh` - `ANONYMOUS` или аутентифицированный пользователь с валидным refresh token - `Сделано`
 
 ### ProfileController
 
-- `GET /v0/profile` - `GUEST`, `STUDENT`, `TEACHER`, `ADMIN` - `Сделано`
-- `GET /v0/profile/me` - `OWNER(profile)` - `Сделано`
-- `GET /v0/profile/{handle}` - `GUEST`, `STUDENT`, `TEACHER`, `ADMIN` - `Сделано`
-- `GET /v0/profile/id/{userId}` - `ADMIN`, `OWNER(profile)` - `Сделано`
-- `PATCH /v0/profile` - `OWNER(profile)` - `Сделано`
-- `PUT /v0/profile` - `OWNER(profile)` - `Сделано`
-- `POST /v0/profile/avatar` - `OWNER(profile)` - `Сделано`
-- `DELETE /v0/profile/avatar` - `OWNER(profile)` - `Сделано`
+- `GET /api/v0/profile` - `GUEST`, `STUDENT`, `TEACHER`, `ADMIN` - `Сделано`
+- `GET /api/v0/profile/me` - `OWNER(profile)` - `Сделано`
+- `GET /api/v0/profile/{handle}` - `GUEST`, `STUDENT`, `TEACHER`, `ADMIN` - `Сделано`
+- `GET /api/v0/profile/id/{userId}` - `ADMIN`, `OWNER(profile)` - `Сделано`
+- `PATCH /api/v0/profile` - `OWNER(profile)` - `Сделано`
+- `PUT /api/v0/profile` - `OWNER(profile)` - `Сделано`
+- `POST /api/v0/profile/avatar` - `OWNER(profile)` - `Сделано`
+- `DELETE /api/v0/profile/avatar` - `OWNER(profile)` - `Сделано`
 
 ### FileController
 
-- `GET /v0/files/{id}` - зависит от `fileVisibility` attachment-а - `Сделано`
+- `GET /api/v0/files/{id}` - зависит от `fileVisibility` attachment-а - `Сделано`
 - `PUBLIC` (например, аватар профиля) - `GUEST`, `STUDENT`, `TEACHER`, `ADMIN` - `Сделано`
 - `ENROLLED` (например, preview курса) - `ENROLLED`, `OWNER(course|lesson)`, `EDITOR(course)`, `ADMIN`; дополнительно зависит от `state` ресурса (`PUBLISHED`) - `Сделано`
 - `PRIVATE` - `OWNER(profile|course|lesson)`, `ADMIN` - `Сделано`
-- `GET /v0/files/{id}/meta` - `OWNER(file)`, `ADMIN` - `Сделано`
-- `DELETE /v0/files/{id}` - `OWNER(file)`, `ADMIN` - `Сделано`
+- `GET /api/v0/files/{id}/meta` - `OWNER(file)`, `ADMIN` - `Сделано`
+- `DELETE /api/v0/files/{id}` - `OWNER(file)`, `ADMIN` - `Сделано`
 
 ### CourseController
 
-- `GET /v0/course` - `GUEST`, `STUDENT`, `TEACHER`, `ADMIN`; в выдаче учитывается `state` (`PUBLISHED` для каталога, + персонально доступные курсы) - `Сделано`
-- `POST /v0/course` - `TEACHER`, `ADMIN` - `Сделано`
-- `PATCH /v0/course/{id}` - `OWNER(course)`, `ADMIN` - `Сделано`
-- `PUT /v0/course/{id}` - `OWNER(course)`, `ADMIN` - `Сделано`
-- `GET /v0/course/id/{id}` - `ENROLLED`, `OWNER(course)`, `EDITOR(course)`, `ADMIN`; дополнительно зависит от `state` (`DRAFT/ARCHIVED` недоступны не-управляющим) - `Сделано`
-- `GET /v0/course/handle/{handle}` - аналогично `GET /v0/course/id/{id}` - `Сделано`
-- `POST /v0/course/{id}/preview` - `OWNER(course)`, `EDITOR(course)` , `ADMIN`; visibility preview синхронизируется с `state` - `Сделано`
-- `DELETE /v0/course/{id}` - `OWNER(course)`, `ADMIN` - `Сделано`
-- `POST /v0/course/{id}/editors/{userId}` - `OWNER(course)`, `ADMIN` - `Сделано`
-- `DELETE /v0/course/{id}/editors/{userId}` - `OWNER(course)`, `ADMIN` - `Сделано`
-- `POST /v0/course/{id}/publish` - `OWNER(course)`, `ADMIN` - `Сделано`
-- `POST /v0/course/{id}/archive` - `OWNER(course)`, `ADMIN` - `Сделано`
-- `POST /v0/course/{id}/enroll` - `GUEST`, `STUDENT`; дополнительно применяются business-ограничения enrollment (не повторно, не при переполнении курса) - `Сделано`
-- `DELETE /v0/course/{id}/enroll` - сам записанный пользователь (`GUEST`, `STUDENT`) - `Сделано`
-- `GET /v0/course/{id}/members` - `OWNER(course)`, `EDITOR(course)`, `ENROLLED`, `ADMIN` - `Сделано`
-- `GET /v0/course/{id}/students` - `OWNER(course)`, `ADMIN` - `Сделано`
-- `GET /v0/course/{id}/teachers` - `OWNER(course)`, `ADMIN` - `Сделано`
-- `POST /v0/course/{id}/teachers` - `OWNER(course)`, `ADMIN` - `Сделано`
-- `DELETE /v0/course/{id}/teachers/{teacherId}` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `GET /api/v0/course` - `GUEST`, `STUDENT`, `TEACHER`, `ADMIN`; в выдаче учитывается `state` (`PUBLISHED` для каталога, + персонально доступные курсы) - `Сделано`
+- `POST /api/v0/course` - `TEACHER`, `ADMIN` - `Сделано`
+- `PATCH /api/v0/course/{id}` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `PUT /api/v0/course/{id}` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `GET /api/v0/course/id/{id}` - `ENROLLED`, `OWNER(course)`, `EDITOR(course)`, `ADMIN`; дополнительно зависит от `state` (`DRAFT/ARCHIVED` недоступны не-управляющим) - `Сделано`
+- `GET /api/v0/course/handle/{handle}` - аналогично `GET /api/v0/course/id/{id}` - `Сделано`
+- `POST /api/v0/course/{id}/preview` - `OWNER(course)`, `EDITOR(course)` , `ADMIN`; visibility preview синхронизируется с `state` - `Сделано`
+- `DELETE /api/v0/course/{id}` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `POST /api/v0/course/{id}/editors/{userId}` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `DELETE /api/v0/course/{id}/editors/{userId}` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `POST /api/v0/course/{id}/publish` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `POST /api/v0/course/{id}/archive` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `POST /api/v0/course/{id}/enroll` - `GUEST`, `STUDENT`; дополнительно применяются business-ограничения enrollment (не повторно, не при переполнении курса) - `Сделано`
+- `DELETE /api/v0/course/{id}/enroll` - сам записанный пользователь (`GUEST`, `STUDENT`) - `Сделано`
+- `GET /api/v0/course/{id}/members` - `OWNER(course)`, `EDITOR(course)`, `ENROLLED`, `ADMIN` - `Сделано`
+- `GET /api/v0/course/{id}/students` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `GET /api/v0/course/{id}/teachers` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `POST /api/v0/course/{id}/teachers` - `OWNER(course)`, `ADMIN` - `Сделано`
+- `DELETE /api/v0/course/{id}/teachers/{teacherId}` - `OWNER(course)`, `ADMIN` - `Сделано`
 
 ### LessonController
 
 `contentMd` является частью ресурса `lesson` и подчиняется тем же правилам доступа, что и чтение/изменение урока: виден через `GET lesson` и `GET lessons by course`, изменяется только через `PATCH/PUT lesson`.
 
-- `POST /v0/lessons/{courseId}` - `OWNER(course)`, `EDITOR(course)`, `ADMIN` - `Сделано`
-- `GET /v0/lessons/{lessonId}` - `OWNER(course)`, `EDITOR(course)`, `ENROLLED`, `ADMIN` - `Сделано`
-- `GET /v0/lessons/course/{courseId}` - `OWNER(course)`, `EDITOR(course)`, `ENROLLED`, `ADMIN` - `Сделано`
-- `PATCH /v0/lessons/{lessonId}` - `OWNER(lesson)`, `ADMIN` - `Сделано`
-- `PUT /v0/lessons/{lessonId}` - `OWNER(lesson)`, `ADMIN` - `Сделано`
-- `PATCH /v0/lessons/{lessonId}/state` - `OWNER(lesson)`, `ADMIN` - `Сделано`
-- `DELETE /v0/lessons/{lessonId}` - `OWNER(lesson)`, `OWNER(course)`, `ADMIN` - `Сделано`
-- `POST /v0/lessons/{lessonId}/materials` - `OWNER(lesson)`, `ADMIN` - `Сделано`
-- `DELETE /v0/lessons/{lessonId}/materials/{fileId}` - `OWNER(lesson)`, `ADMIN` - `Сделано`
+- `POST /api/v0/lessons/{courseId}` - `OWNER(course)`, `EDITOR(course)`, `ADMIN` - `Сделано`
+- `GET /api/v0/lessons/{lessonId}` - `OWNER(course)`, `EDITOR(course)`, `ENROLLED`, `ADMIN` - `Сделано`
+- `GET /api/v0/lessons/course/{courseId}` - `OWNER(course)`, `EDITOR(course)`, `ENROLLED`, `ADMIN` - `Сделано`
+- `PATCH /api/v0/lessons/{lessonId}` - `OWNER(lesson)`, `ADMIN` - `Сделано`
+- `PUT /api/v0/lessons/{lessonId}` - `OWNER(lesson)`, `ADMIN` - `Сделано`
+- `PATCH /api/v0/lessons/{lessonId}/state` - `OWNER(lesson)`, `ADMIN` - `Сделано`
+- `DELETE /api/v0/lessons/{lessonId}` - `OWNER(lesson)`, `OWNER(course)`, `ADMIN` - `Сделано`
+- `POST /api/v0/lessons/{lessonId}/materials` - `OWNER(lesson)`, `ADMIN` - `Сделано`
+- `DELETE /api/v0/lessons/{lessonId}/materials/{fileId}` - `OWNER(lesson)`, `ADMIN` - `Сделано`
 
 ### UserAdminController
 
-- `GET /v0/users` - `ADMIN` - `Сделано`
-- `GET /v0/users/{id}` - `ADMIN` - `Сделано`
-- `PATCH /v0/users/{id}/role` - `ADMIN`; самоназначение роли запрещено - `Сделано`
-- `PATCH /v0/users/{id}/status` - `ADMIN`; self-block запрещен - `Сделано`
+- `GET /api/v0/users` - `ADMIN` - `Сделано`
+- `GET /api/v0/users/{id}` - `ADMIN` - `Сделано`
+- `PATCH /api/v0/users/{id}/role` - `ADMIN`; самоназначение роли запрещено - `Сделано`
+- `PATCH /api/v0/users/{id}/status` - `ADMIN`; self-block запрещен - `Сделано`

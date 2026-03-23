@@ -23,9 +23,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthRateLimitFilter extends OncePerRequestFilter {
 
-    static String LOGIN_PATH = "/v0/auth/login";
-    static String REGISTER_PATH = "/v0/auth/register";
-    static String REFRESH_PATH = "/v0/token/refresh";
+    static String LOGIN_PATH = "/api/v0/auth/login";
+    static String REGISTER_PATH = "/api/v0/auth/register";
+    static String REFRESH_PATH = "/api/v0/token/refresh";
 
     AuthRateLimitProperties properties;
     ApiErrorResponseWriter errorResponseWriter;

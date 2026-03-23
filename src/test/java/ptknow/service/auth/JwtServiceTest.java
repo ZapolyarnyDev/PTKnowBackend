@@ -208,12 +208,12 @@ class JwtServiceTest {
 
     @Test
     void tokenToCookieShouldBuildHttpOnlyCookieWithConfiguredFlags() {
-        ResponseCookie cookie = jwtService.tokenToCookie("/v0/token/refresh", "refresh-token");
+        ResponseCookie cookie = jwtService.tokenToCookie("/api/v0/token/refresh", "refresh-token");
 
         assertEquals("refreshToken", cookie.getName());
         assertEquals("refresh-token", cookie.getValue());
         assertTrue(cookie.isHttpOnly());
-        assertEquals("/v0/token/refresh", cookie.getPath());
+        assertEquals("/api/v0/token/refresh", cookie.getPath());
         assertEquals("Lax", cookie.getSameSite());
     }
 

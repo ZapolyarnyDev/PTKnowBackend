@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/v0/course")
+@RequestMapping("/api/v0/course")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @SecurityRequirement(name = "bearerAuth")
