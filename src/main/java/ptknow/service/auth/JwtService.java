@@ -9,6 +9,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ptknow.exception.token.InvalidTokenException;
@@ -34,6 +36,7 @@ import java.util.HexFormat;
 public class JwtService {
 
     static final String REFRESH_COOKIE_NAME = "refreshToken";
+    private static final JwsHeader JWT_HEADER = JwsHeader.with(MacAlgorithm.HS256).build();
 
     JwtProperties properties;
     JwtEncoder jwtEncoder;
@@ -49,7 +52,7 @@ public class JwtService {
                 .claim(JwtClaim.TYPE.getName(), ClaimType.ACCESS.getName())
                 .claim(JwtClaim.ROLE.getName(), user.getRole().authorityName())
                 .build();
-        return jwtEncoder.encode(JwtEncoderParameters.from(claimSet)).getTokenValue();
+        return jwtEncoder.encode(JwtEncoderParameters.from(JWT_HEADER, claimSet)).getTokenValue();
     }
 
     private String generateRefreshToken(Auth user) {
@@ -64,7 +67,7 @@ public class JwtService {
                 .claim(JwtClaim.TYPE.getName(), ClaimType.REFRESH.getName())
                 .build();
 
-        String token = jwtEncoder.encode(JwtEncoderParameters.from(claimSet)).getTokenValue();
+        String token = jwtEncoder.encode(JwtEncoderParameters.from(JWT_HEADER, claimSet)).getTokenValue();
         String tokenHash = hashRefreshToken(token);
 
         var entity = RefreshToken.builder()

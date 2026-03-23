@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
@@ -82,6 +83,21 @@ class JwtServiceTest {
         assertNotEquals("refresh-token", saved.getTokenHash());
         assertEquals(64, saved.getTokenHash().length());
         assertEquals(user, saved.getUser());
+    }
+
+    @Test
+    void generateTokenPairShouldEncodeTokensWithHs256Header() {
+        Auth user = auth(Role.STUDENT, UserStatus.ACTIVE);
+        mockEncoderSequence("access-token", "refresh-token");
+
+        jwtService.generateTokenPair(user);
+
+        ArgumentCaptor<JwtEncoderParameters> parametersCaptor = ArgumentCaptor.forClass(JwtEncoderParameters.class);
+        verify(jwtEncoder, times(2)).encode(parametersCaptor.capture());
+
+        for (JwtEncoderParameters parameters : parametersCaptor.getAllValues()) {
+            assertEquals(MacAlgorithm.HS256.getName(), parameters.getJwsHeader().getAlgorithm().getName());
+        }
     }
 
     @Test
