@@ -50,14 +50,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @SecurityRequirement(name = "bearerAuth")
-@Tag(name = "Уроки", description = "CRUD уроков, markdown-контент и материалы уроков")
+@Tag(name = "Lessons", description = "Lesson CRUD, markdown content and lesson materials")
 public class LessonController {
 
     LessonService lessonService;
     LessonMapper lessonMapper;
 
     @PostMapping("/{courseId}")
-    @Operation(summary = "Создать урок", description = "Создаёт урок внутри курса. Требуется роль TEACHER или ADMIN; фактический бизнес-доступ: OWNER(course)|EDITOR(course)|ADMIN.")
+    @Operation(summary = "Create lesson", description = "Creates a lesson in a course. Effective access: OWNER(course)|EDITOR(course)|ADMIN.")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<LessonDTO> createLesson(
             @PathVariable Long courseId,
@@ -69,7 +69,7 @@ public class LessonController {
     }
 
     @GetMapping("/{lessonId}")
-    @Operation(summary = "Получить урок по id", description = "Возвращает данные урока, включая markdown-контент и прикреплённые материалы, если у текущего пользователя есть доступ к родительскому курсу.")
+    @Operation(summary = "Get lesson by id", description = "Returns lesson details, markdown content and attached materials if the caller can access the parent course.")
     @PreAuthorize("hasAnyRole('GUEST', 'STUDENT', 'TEACHER', 'ADMIN')")
     public ResponseEntity<LessonDTO> getLesson(
             @PathVariable Long lessonId,
@@ -80,8 +80,8 @@ public class LessonController {
     }
 
     @GetMapping("/course/{courseId}")
-    @Operation(summary = "Получить уроки курса", description = "Возвращает уроки курса, если у текущего пользователя есть доступ к этому курсу.")
-    @ApiResponse(responseCode = "200", description = "Уроки получены",
+    @Operation(summary = "Get course lessons", description = "Returns a paginated lesson list for a course if the caller can access that course.")
+    @ApiResponse(responseCode = "200", description = "Lessons returned",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = PageResponseDTO.class)))
     @PreAuthorize("hasAnyRole('GUEST', 'STUDENT', 'TEACHER', 'ADMIN')")
@@ -113,7 +113,7 @@ public class LessonController {
     }
 
     @DeleteMapping("/{lessonId}")
-    @Operation(summary = "Удалить урок", description = "Удаляет урок. Фактический бизнес-доступ: OWNER(lesson)|OWNER(course)|ADMIN.")
+    @Operation(summary = "Delete lesson", description = "Deletes a lesson. Effective access: OWNER(lesson)|OWNER(course)|ADMIN.")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<Void> deleteLesson(
             @PathVariable Long lessonId,
@@ -123,7 +123,7 @@ public class LessonController {
     }
 
     @PostMapping("/{lessonId}/materials")
-    @Operation(summary = "Загрузить материал урока", description = "Загружает файл и прикрепляет его как материал урока. Фактический бизнес-доступ: OWNER(lesson)|ADMIN.")
+    @Operation(summary = "Upload lesson material", description = "Uploads a file and attaches it as a lesson material. Effective access: OWNER(lesson)|ADMIN.")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<UUID> uploadMaterial(
             @PathVariable Long lessonId,
@@ -135,7 +135,7 @@ public class LessonController {
     }
 
     @DeleteMapping("/{lessonId}/materials/{fileId}")
-    @Operation(summary = "Удалить материал урока", description = "Удаляет attachment материала урока и физический файл, если на него больше нет других ссылок. Фактический бизнес-доступ: OWNER(lesson)|ADMIN.")
+    @Operation(summary = "Delete lesson material", description = "Deletes a lesson material attachment and removes the physical file if it has no remaining links. Effective access: OWNER(lesson)|ADMIN.")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<Void> deleteMaterial(
             @PathVariable Long lessonId,
@@ -147,7 +147,7 @@ public class LessonController {
     }
 
     @PatchMapping("/{lessonId}")
-    @Operation(summary = "Частично обновить урок", description = "Частично обновляет поля урока. Фактический бизнес-доступ: OWNER(lesson)|ADMIN.")
+    @Operation(summary = "Patch lesson", description = "Partially updates lesson fields. Effective access: OWNER(lesson)|ADMIN.")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<LessonDTO> patchLesson(
             @PathVariable Long lessonId,
@@ -159,7 +159,7 @@ public class LessonController {
     }
 
     @PutMapping("/{lessonId}")
-    @Operation(summary = "Полностью заменить урок", description = "Полностью заменяет поля урока. Фактический бизнес-доступ: OWNER(lesson)|ADMIN.")
+    @Operation(summary = "Replace lesson", description = "Fully replaces lesson fields. Effective access: OWNER(lesson)|ADMIN.")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<LessonDTO> putLesson(
             @PathVariable Long lessonId,
@@ -171,15 +171,15 @@ public class LessonController {
     }
 
     @PatchMapping("/{lessonId}/state")
-    @Operation(summary = "Изменить состояние урока", description = "Обновляет состояние урока в его жизненном цикле. Фактический бизнес-доступ: OWNER(lesson)|ADMIN.")
+    @Operation(summary = "Update lesson state", description = "Updates lesson lifecycle state. Effective access: OWNER(lesson)|ADMIN.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Состояние урока обновлено",
+            @ApiResponse(responseCode = "200", description = "Lesson state updated",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = LessonDTO.class))),
-            @ApiResponse(responseCode = "400", description = "Ошибка валидации",
+            @ApiResponse(responseCode = "400", description = "Validation error",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "403", description = "Доступ запрещён",
+            @ApiResponse(responseCode = "403", description = "Forbidden",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "404", description = "Урок не найден",
+            @ApiResponse(responseCode = "404", description = "Lesson not found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
     })
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")

@@ -4,6 +4,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ptknow.dto.user.AdminUserDTO;
@@ -34,6 +36,17 @@ public class AdminUserService {
                 .stream()
                 .map(this::toAdminUserDTO)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AdminUserDTO> findPage(Pageable pageable, String q, Role role, UserStatus status) {
+        return authRepository.findAll(
+                        AuthSpecifications.search(q)
+                                .and(AuthSpecifications.hasRole(role))
+                                .and(AuthSpecifications.hasStatus(status)),
+                        pageable
+                )
+                .map(this::toAdminUserDTO);
     }
 
     @Transactional(readOnly = true)
