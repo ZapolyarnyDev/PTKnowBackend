@@ -101,7 +101,7 @@ public class LessonController {
         var result = lessonService.findPageByCourse(courseId, auth, pageRequest, q, state, type, from, to);
 
         var body = new PageResponseDTO<>(
-                result.getContent().stream().map(lessonMapper::toDTO).toList(),
+                lessonMapper.toDTOList(result.getContent()),
                 result.getNumber(),
                 result.getSize(),
                 result.getTotalElements(),

@@ -23,8 +23,11 @@ import ptknow.repository.lesson.LessonRepository;
 import ptknow.repository.profile.ProfileRepository;
 
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -72,6 +75,16 @@ public class FileAttachmentService {
     @Transactional(readOnly = true)
     public Set<FileAttachment> findAllByResource(ResourceType resourceType, String resourceId) {
         return attachmentRepository.findAllByResourceTypeAndResourceId(resourceType, resourceId);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, List<FileAttachment>> findAllByResourceGrouped(ResourceType resourceType, Set<String> resourceIds) {
+        if (resourceIds == null || resourceIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return attachmentRepository.findAllByResourceTypeAndResourceIdIn(resourceType, resourceIds).stream()
+                .collect(Collectors.groupingBy(FileAttachment::getResourceId));
     }
 
     @Transactional
