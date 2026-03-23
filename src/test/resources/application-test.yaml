@@ -17,6 +17,12 @@ spring:
         dialect: org.hibernate.dialect.H2Dialect
 
 app:
+  cache:
+    profile:
+      by-handle-ttl: PT5S
+      search-ttl: PT5S
+      by-handle-max-size: 100
+      search-max-size: 100
   file:
     upload-dir: build/test-uploads
 

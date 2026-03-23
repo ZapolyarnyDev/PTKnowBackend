@@ -28,6 +28,7 @@ dependencies {
 	annotationProcessor(libs.lombok)
 
 	implementation(libs.spring.boot.starter.data.jpa)
+	implementation(libs.spring.boot.starter.cache)
 	implementation(libs.spring.boot.starter.json)
 	implementation(libs.spring.boot.starter.validation)
 	implementation(libs.spring.boot.starter.web)
@@ -41,6 +42,7 @@ dependencies {
 	implementation(libs.spring.boot.starter.oauth2.client)
 	implementation(libs.spring.boot.starter.oauth2.resource.server)
 	implementation(libs.springdoc.openapi.starter.webmvc.ui)
+	implementation(libs.caffeine)
 
 	compileOnly(libs.mapstruct)
 	annotationProcessor(libs.mapstruct.processor)

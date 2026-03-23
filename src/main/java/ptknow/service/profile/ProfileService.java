@@ -14,6 +14,9 @@ import ptknow.service.file.FileService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,8 @@ import ptknow.model.auth.Role;
 import ptknow.model.file.attachment.FileVisibility;
 import ptknow.model.file.attachment.resource.Purpose;
 import ptknow.model.file.attachment.resource.ResourceType;
+import ptknow.config.CacheConfig;
+import ptknow.config.cache.ProfileCacheKeys;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -37,6 +42,7 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
     FileAttachmentService fileAttachmentService;
     ProfileRepository repository;
     HandleGenerator handleGenerator;
+    CacheManager cacheManager;
 
     @Transactional
     public Profile createProfile(String fullName, Auth user) {
@@ -47,13 +53,17 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
                 .user(user)
                 .build();
 
-        return repository.save(entity);
+        Profile savedProfile = repository.save(entity);
+        evictProfileSearchCache();
+        return savedProfile;
     }
 
     @Transactional
     public Profile update(UUID userId, ProfileUpdateDTO dto) {
         Profile profile = repository.findByUserId(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
+        String previousHandle = profile.getHandle();
+
         if (dto.fullName() != null)
             profile.setFullName(dto.fullName());
         if (dto.summary() != null)
@@ -61,7 +71,9 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
         if (dto.handle() != null)
             profile.setHandle(dto.handle());
 
-        return repository.save(profile);
+        Profile updatedProfile = repository.save(profile);
+        evictProfileReadCaches(previousHandle, updatedProfile.getHandle());
+        return updatedProfile;
     }
 
     @Transactional(readOnly = true)
@@ -78,6 +90,7 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
     public Profile updateAvatar(UUID userId, MultipartFile file) throws IOException {
         Profile profile = getProfile(userId);
         File oldAvatar = profile.getAvatar();
+        String handle = profile.getHandle();
 
         File savedFile = fileService.saveFile(file);
         profile.setAvatar(savedFile);
@@ -97,6 +110,7 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
             fileService.deleteFile(oldAvatar.getId());
         }
 
+        evictProfileReadCaches(handle, updatedProfile.getHandle());
         return updatedProfile;
     }
 
@@ -104,6 +118,7 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
     public void deleteAvatar(UUID userId) throws IOException {
         Profile profile = getProfile(userId);
         File oldAvatar = profile.getAvatar();
+        String handle = profile.getHandle();
 
         if (oldAvatar == null) {
             return;
@@ -114,10 +129,13 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
 
         fileAttachmentService.deleteAllByFileId(oldAvatar.getId());
         fileService.deleteFile(oldAvatar.getId());
+        evictProfileReadCaches(handle, handle);
     }
 
     @Transactional(readOnly = true)
     @Override
+    @Cacheable(cacheNames = CacheConfig.PROFILE_BY_HANDLE_CACHE,
+            key = "T(ptknow.config.cache.ProfileCacheKeys).byHandle(#handle)")
     public Profile getByHandle(String handle) {
         return repository.findByHandle(handle)
                 .orElseThrow(() -> new UserNotFoundException(handle));
@@ -140,6 +158,8 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheConfig.PROFILE_SEARCH_CACHE,
+            key = "T(ptknow.config.cache.ProfileCacheKeys).search(#pageable, #q)")
     public Page<Profile> search(Auth initiator, Pageable pageable, String q) {
         if (!canSeeProfile(initiator)) {
             throw new AccessDeniedException("You don't have permissions to view profiles");
@@ -181,6 +201,24 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
 
         return initiator.getRole() == Role.ADMIN ||
                 profile.getUser().getId().equals(initiator.getId());
+    }
+
+    private void evictProfileReadCaches(String... handles) {
+        Cache byHandleCache = cacheManager.getCache(CacheConfig.PROFILE_BY_HANDLE_CACHE);
+        if (byHandleCache != null) {
+            for (String handle : handles) {
+                byHandleCache.evict(ProfileCacheKeys.byHandle(handle));
+            }
+        }
+
+        evictProfileSearchCache();
+    }
+
+    private void evictProfileSearchCache() {
+        Cache searchCache = cacheManager.getCache(CacheConfig.PROFILE_SEARCH_CACHE);
+        if (searchCache != null) {
+            searchCache.clear();
+        }
     }
 }
 

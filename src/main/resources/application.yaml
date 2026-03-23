@@ -1,5 +1,5 @@
 server:
-  port: ${PTKNOW_PORT}
+  port: ${PTKNOW_PORT:8080}
 
 spring:
   flyway:
@@ -32,6 +32,12 @@ springdoc:
     tags-sorter: alpha
 
 app:
+  cache:
+    profile:
+      by-handle-ttl: ${APP_CACHE_PROFILE_BY_HANDLE_TTL:PT2M}
+      search-ttl: ${APP_CACHE_PROFILE_SEARCH_TTL:PT45S}
+      by-handle-max-size: ${APP_CACHE_PROFILE_BY_HANDLE_MAX_SIZE:1000}
+      search-max-size: ${APP_CACHE_PROFILE_SEARCH_MAX_SIZE:200}
   file:
     upload-dir: ${APP_FILE_UPLOAD_DIR:uploads}
     max-file-size-bytes: 10485760
