@@ -22,6 +22,7 @@ public class CacheConfig {
     public static final String PROFILE_SEARCH_CACHE = "profileSearch";
     public static final String COURSE_BY_ID_CACHE = "courseById";
     public static final String COURSE_BY_HANDLE_CACHE = "courseByHandle";
+    public static final String COURSE_PUBLIC_LIST_CACHE = "coursePublicList";
 
     @Bean
     public CacheManager cacheManager(
@@ -60,8 +61,22 @@ public class CacheConfig {
                         .build()
         );
 
+        CaffeineCache coursePublicList = new CaffeineCache(
+                COURSE_PUBLIC_LIST_CACHE,
+                Caffeine.newBuilder()
+                        .maximumSize(courseCacheProperties.getPublicListMaxSize())
+                        .expireAfterWrite(courseCacheProperties.getPublicListTtl())
+                        .build()
+        );
+
         SimpleCacheManager cacheManager = new SimpleCacheManager();
-        cacheManager.setCaches(List.of(profileByHandle, profileSearch, courseById, courseByHandle));
+        cacheManager.setCaches(List.of(
+                profileByHandle,
+                profileSearch,
+                courseById,
+                courseByHandle,
+                coursePublicList
+        ));
         return cacheManager;
     }
 }

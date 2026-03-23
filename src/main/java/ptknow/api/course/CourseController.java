@@ -50,6 +50,7 @@ import java.util.UUID;
 public class CourseController {
 
     CourseService courseService;
+    ptknow.service.course.CourseCacheService courseCacheService;
     EnrollmentService enrollmentService;
     CourseMapper courseMapper;
     EnrollmentMapper enrollmentMapper;
@@ -70,6 +71,11 @@ public class CourseController {
             @RequestParam(required = false) String tag
     ) {
         var pageRequest = PageRequest.of(page, Math.min(size, 100), parseSort(sort));
+
+        if (auth == null) {
+            return ResponseEntity.ok(courseCacheService.getAnonymousPublicList(pageRequest, q, state, tag));
+        }
+
         var result = courseService.findCoursesPage(auth, pageRequest, q, state, tag);
         var courseIds = result.getContent().stream().map(Course::getId).collect(java.util.stream.Collectors.toSet());
         var lessonCounts = courseService.countLessonsByCourseIds(courseIds);

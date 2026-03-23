@@ -36,8 +36,10 @@ app:
     course:
       by-id-ttl: ${APP_CACHE_COURSE_BY_ID_TTL:PT2M}
       by-handle-ttl: ${APP_CACHE_COURSE_BY_HANDLE_TTL:PT2M}
+      public-list-ttl: ${APP_CACHE_COURSE_PUBLIC_LIST_TTL:PT30S}
       by-id-max-size: ${APP_CACHE_COURSE_BY_ID_MAX_SIZE:1000}
       by-handle-max-size: ${APP_CACHE_COURSE_BY_HANDLE_MAX_SIZE:1000}
+      public-list-max-size: ${APP_CACHE_COURSE_PUBLIC_LIST_MAX_SIZE:200}
     profile:
       by-handle-ttl: ${APP_CACHE_PROFILE_BY_HANDLE_TTL:PT2M}
       search-ttl: ${APP_CACHE_PROFILE_SEARCH_TTL:PT45S}

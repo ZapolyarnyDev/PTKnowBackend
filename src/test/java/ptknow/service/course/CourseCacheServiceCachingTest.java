@@ -7,8 +7,12 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import ptknow.config.CacheConfig;
+import ptknow.dto.common.PageResponseDTO;
 import ptknow.dto.course.CourseDTO;
 import ptknow.mapper.course.CourseMapper;
 import ptknow.model.auth.Auth;
@@ -56,7 +60,8 @@ class CourseCacheServiceCachingTest {
         CacheManager cacheManager() {
             return new ConcurrentMapCacheManager(
                     CacheConfig.COURSE_BY_ID_CACHE,
-                    CacheConfig.COURSE_BY_HANDLE_CACHE
+                    CacheConfig.COURSE_BY_HANDLE_CACHE,
+                    CacheConfig.COURSE_PUBLIC_LIST_CACHE
             );
         }
 
@@ -98,6 +103,7 @@ class CourseCacheServiceCachingTest {
         reset(courseRepository, lessonRepository, enrollmentRepository, courseMapper);
         cacheManager.getCache(CacheConfig.COURSE_BY_ID_CACHE).clear();
         cacheManager.getCache(CacheConfig.COURSE_BY_HANDLE_CACHE).clear();
+        cacheManager.getCache(CacheConfig.COURSE_PUBLIC_LIST_CACHE).clear();
 
         Auth owner = Auth.builder()
                 .email("owner@example.com")
@@ -176,5 +182,26 @@ class CourseCacheServiceCachingTest {
 
         verify(courseRepository, times(2)).findViewById(42L);
         verify(courseRepository, times(2)).findViewByHandle("java-backend-basics");
+    }
+
+    @Test
+    void getAnonymousPublicListShouldUseCache() {
+        var pageable = PageRequest.of(0, 20);
+
+        when(courseRepository.findAll(org.mockito.ArgumentMatchers.<Specification<Course>>any(), eq(pageable)))
+                .thenReturn(new PageImpl<>(List.of(course), pageable, 1));
+        when(courseRepository.findAllListViewByIdIn(Set.of(42L))).thenReturn(List.of(course));
+        when(lessonRepository.countByCourseIds(Set.of(42L))).thenReturn(java.util.Collections.singletonList(new Object[]{42L, 3L}));
+        when(enrollmentRepository.countByCourseIds(Set.of(42L))).thenReturn(java.util.Collections.singletonList(new Object[]{42L, 7L}));
+        when(courseMapper.courseToDTOList(List.of(course), java.util.Map.of(42L, 3), java.util.Map.of(42L, 7)))
+                .thenReturn(List.of(dto));
+
+        PageResponseDTO<CourseDTO> first = courseCacheService.getAnonymousPublicList(pageable, "java", CourseState.PUBLISHED, "backend");
+        PageResponseDTO<CourseDTO> second = courseCacheService.getAnonymousPublicList(pageable, "java", CourseState.PUBLISHED, "backend");
+
+        assertEquals(1, first.items().size());
+        assertEquals(first, second);
+        verify(courseRepository, times(1)).findAll(org.mockito.ArgumentMatchers.<Specification<Course>>any(), eq(pageable));
+        verify(courseRepository, times(1)).findAllListViewByIdIn(Set.of(42L));
     }
 }

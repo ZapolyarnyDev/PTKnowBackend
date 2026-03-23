@@ -21,9 +21,15 @@ public class CourseCacheProperties {
     @NotNull
     Duration byHandleTtl = Duration.ofMinutes(2);
 
+    @NotNull
+    Duration publicListTtl = Duration.ofSeconds(30);
+
     @Min(1)
     long byIdMaxSize = 1_000;
 
     @Min(1)
     long byHandleMaxSize = 1_000;
+
+    @Min(1)
+    long publicListMaxSize = 200;
 }
