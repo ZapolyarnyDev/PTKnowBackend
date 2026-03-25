@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import ptknow.service.file.storage.FileStorageType;
 
 @Getter
 @Setter
@@ -15,6 +16,8 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "app.file")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class FileStorageProperties {
+
+    FileStorageType type = FileStorageType.LOCAL;
 
     @NotBlank
     String uploadDir;

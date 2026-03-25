@@ -46,6 +46,7 @@ app:
       by-handle-max-size: ${APP_CACHE_PROFILE_BY_HANDLE_MAX_SIZE:1000}
       search-max-size: ${APP_CACHE_PROFILE_SEARCH_MAX_SIZE:200}
   file:
+    type: ${APP_FILE_STORAGE_TYPE:LOCAL}
     upload-dir: ${APP_FILE_UPLOAD_DIR:uploads}
     max-file-size-bytes: 10485760
 

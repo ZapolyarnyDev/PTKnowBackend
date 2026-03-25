@@ -1,7 +1,6 @@
 package ptknow.service.file.storage;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import ptknow.properties.FileStorageProperties;
 
@@ -13,7 +12,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
-@Component
 @RequiredArgsConstructor
 public class LocalFileStorage implements FileStorage {
 
@@ -63,13 +61,11 @@ public class LocalFileStorage implements FileStorage {
             Path root = Paths.get(properties.getUploadDir()).toAbsolutePath().normalize();
             Path resolved = root.resolve(storageKey).normalize();
             if (!resolved.startsWith(root)) {
-                throw new IOException("Resolved storage path escapes configured root directory");
+                throw new IllegalStateException("Resolved storage path escapes configured root directory");
             }
             return resolved;
         } catch (InvalidPathException e) {
             throw new IllegalArgumentException("Invalid storage key", e);
-        } catch (IOException e) {
-            throw new IllegalStateException(e.getMessage(), e);
         }
     }
 }

@@ -31,6 +31,7 @@ app:
       by-handle-max-size: 100
       search-max-size: 100
   file:
+    type: LOCAL
     upload-dir: build/test-uploads
 
 security:
