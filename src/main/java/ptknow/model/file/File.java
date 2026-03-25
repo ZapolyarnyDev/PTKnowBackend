@@ -18,7 +18,6 @@ import java.util.UUID;
 public class File {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     UUID id;
 
     @Column(nullable = false)

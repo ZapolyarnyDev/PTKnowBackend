@@ -22,6 +22,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -55,6 +56,29 @@ class FileServiceTest {
 
         assertThrows(RuntimeException.class, () -> fileService.saveFile(multipartFile));
         verify(fileStorage).delete("stored/file-key");
+    }
+
+    @Test
+    void saveFileShouldPersistFileWithAssignedUuid() throws Exception {
+        fileService = new FileService(fileRepository, properties, fileStorage);
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "file",
+                "avatar.png",
+                "image/png",
+                "img".getBytes()
+        );
+
+        when(fileStorage.store(any(UUID.class), any(org.springframework.web.multipart.MultipartFile.class)))
+                .thenReturn(new FileStorage.StoredFile("stored/file-key"));
+        when(fileRepository.save(argThat(entity -> entity.getId() != null
+                && entity.getStoragePath().equals("stored/file-key")
+                && entity.getOriginalFilename().equals("avatar.png"))))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        File saved = fileService.saveFile(multipartFile);
+
+        assertEquals("stored/file-key", saved.getStoragePath());
+        assertEquals("avatar.png", saved.getOriginalFilename());
     }
 
     @Test
@@ -162,4 +186,3 @@ class FileServiceTest {
         assertEquals(7L, openedFile.size());
     }
 }
-
