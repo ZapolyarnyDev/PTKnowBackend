@@ -14,7 +14,7 @@ public record ProfileDetailsDTO(
         String summary,
         @Schema(example = "artemovv")
         String handle,
-        @Schema(example = "/api/v0/files/550e8400-e29b-41d4-a716-446655440000")
+        @Schema(example = "/api/v1/files/550e8400-e29b-41d4-a716-446655440000")
         String avatarUrl,
         @Schema(example = "STUDENT")
         Role role,

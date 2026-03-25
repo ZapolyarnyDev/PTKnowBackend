@@ -52,9 +52,9 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/v0/auth/register",
-                                "/api/v0/auth/login",
-                                "/api/v0/token/refresh",
+                                "/api/v1/auth/register",
+                                "/api/v1/auth/login",
+                                "/api/v1/token/refresh",
                                 "/oauth2/**",
                                 "/v3/api-docs",
                                 "/v3/api-docs/**",
@@ -66,14 +66,14 @@ public class SecurityConfig {
                                 "/actuator/info"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET,
-                                "/api/v0/course",
-                                "/api/v0/course/id/*",
-                                "/api/v0/course/handle/*",
-                                "/api/v0/lessons/*",
-                                "/api/v0/lessons/course/*",
-                                "/api/v0/profile/search",
-                                "/api/v0/profile/*",
-                                "/api/v0/files/*"
+                                "/api/v1/course",
+                                "/api/v1/course/id/*",
+                                "/api/v1/course/handle/*",
+                                "/api/v1/lessons/*",
+                                "/api/v1/lessons/course/*",
+                                "/api/v1/profile/search",
+                                "/api/v1/profile/*",
+                                "/api/v1/files/*"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

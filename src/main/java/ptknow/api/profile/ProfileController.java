@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v0/profile")
+@RequestMapping("/api/v1/profile")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @SecurityRequirement(name = "bearerAuth")
@@ -61,7 +61,7 @@ public class ProfileController {
     }
 
     @GetMapping("/me")
-    @Operation(summary = "Получить мой профиль через alias", description = "Алиас для GET /api/v0/profile.")
+    @Operation(summary = "Получить мой профиль через alias", description = "Алиас для GET /api/v1/profile.")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ProfileDetailsDTO> getMyProfileAlias(@AuthenticationPrincipal Auth user) {
         return ResponseEntity.ok(profileService.getOwnProfileDetails(user.getId()));
@@ -106,7 +106,7 @@ public class ProfileController {
     }
 
     @GetMapping("/id/{userId}")
-    @Operation(summary = "Получить профиль по user id", description = "Возвращает профиль по user id. Для non-owner отдаёт только публично видимые курсы пользователя.")
+    @Operation(summary = "Получить профиль по user id", description = "Возвращает профиль по user id. Для не-владельца отдаёт только публично видимые курсы пользователя.")
     public ResponseEntity<ProfileDetailsDTO> getProfileByUserId(
             @PathVariable UUID userId,
             @AuthenticationPrincipal Auth user

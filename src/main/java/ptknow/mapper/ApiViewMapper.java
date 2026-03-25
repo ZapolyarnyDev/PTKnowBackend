@@ -85,7 +85,7 @@ public class ApiViewMapper {
         if (fileId == null) {
             return null;
         }
-        return "/api/v0/files/" + fileId;
+        return "/api/v1/files/" + fileId;
     }
 
     private Long resolveSize(File file) {

@@ -29,7 +29,7 @@ import ptknow.api.exception.ApiError;
 import ptknow.config.openapi.OpenApiExamples;
 
 @RestController
-@RequestMapping("/api/v0/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Tag(name = "Аутентификация", description = "Регистрация, вход и выход. Access token возвращается в теле ответа, refresh token устанавливается в HttpOnly-cookie.")
@@ -58,7 +58,7 @@ public class AuthController {
         Auth entity = authService.register(registrationDTO);
         JwtTokens tokens = jwtService.generateTokenPair(entity);
 
-        ResponseCookie cookie = jwtService.tokenToCookie("/api/v0/token/refresh", tokens.refreshToken());
+        ResponseCookie cookie = jwtService.tokenToCookie("/api/v1/token/refresh", tokens.refreshToken());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -85,7 +85,7 @@ public class AuthController {
         Auth entity = authService.authenticate(loginDTO);
         JwtTokens tokens = jwtService.generateTokenPair(entity);
 
-        ResponseCookie cookie = jwtService.tokenToCookie("/api/v0/token/refresh", tokens.refreshToken());
+        ResponseCookie cookie = jwtService.tokenToCookie("/api/v1/token/refresh", tokens.refreshToken());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -105,12 +105,10 @@ public class AuthController {
     public ResponseEntity<?> logout(@AuthenticationPrincipal Auth user) {
         jwtService.logout(user);
 
-        ResponseCookie cookie = jwtService.deleteRefreshCookie("/api/v0/token/refresh");
+        ResponseCookie cookie = jwtService.deleteRefreshCookie("/api/v1/token/refresh");
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .build();
     }
-
 }
-

@@ -21,7 +21,7 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void shouldHideInternalDetailsForDataIntegrityViolation() {
-        HttpServletRequest request = request("/api/v0/auth/register");
+        HttpServletRequest request = request("/api/v1/auth/register");
 
         ResponseEntity<ApiError> response = handler.handleDataIntegrityViolation(
                 new DataIntegrityViolationException("duplicate key value violates unique constraint auth_data_email_key"),
@@ -36,7 +36,7 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void shouldReturnSafeBadRequestMessageForUnreadableBody() {
-        HttpServletRequest request = request("/api/v0/course");
+        HttpServletRequest request = request("/api/v1/course");
 
         ResponseEntity<ApiError> response = handler.handleBadRequest(
                 new HttpMessageNotReadableException("JSON parse error: internal details", inputMessage()),

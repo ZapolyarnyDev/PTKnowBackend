@@ -48,11 +48,11 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v0/lessons")
+@RequestMapping("/api/v1/lessons")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @SecurityRequirement(name = "bearerAuth")
-@Tag(name = "Уроки", description = "CRUD уроков, markdown-контент и материалы уроков")
+@Tag(name = "Уроки", description = "CRUD уроков, markdown-содержимое и материалы уроков")
 public class LessonController {
 
     LessonService lessonService;
@@ -71,7 +71,7 @@ public class LessonController {
     }
 
     @GetMapping("/{lessonId}")
-    @Operation(summary = "Получить урок по id", description = "Возвращает детали урока, markdown-контент и прикреплённые материалы, если у пользователя есть доступ к родительскому курсу.")
+    @Operation(summary = "Получить урок по id", description = "Возвращает детали урока, markdown-содержимое и прикреплённые материалы, если у пользователя есть доступ к родительскому курсу.")
     @PreAuthorize("permitAll()")
     public ResponseEntity<LessonDTO> getLesson(
             @PathVariable Long lessonId,
@@ -137,7 +137,7 @@ public class LessonController {
     }
 
     @DeleteMapping("/{lessonId}/materials/{fileId}")
-    @Operation(summary = "Удалить материал урока", description = "Удаляет attachment материала урока и физический файл, если на него больше нет ссылок. Фактический доступ: OWNER(lesson)|ADMIN.")
+    @Operation(summary = "Удалить материал урока", description = "Удаляет вложение материала урока и физический файл, если на него больше нет ссылок. Фактический доступ: OWNER(lesson)|ADMIN.")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<Void> deleteMaterial(
             @PathVariable Long lessonId,

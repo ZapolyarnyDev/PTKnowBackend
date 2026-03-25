@@ -24,15 +24,15 @@ import java.util.concurrent.ConcurrentHashMap;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthRateLimitFilter extends OncePerRequestFilter {
 
-    static String LOGIN_PATH = "/api/v0/auth/login";
-    static String REGISTER_PATH = "/api/v0/auth/register";
-    static String REFRESH_PATH = "/api/v0/token/refresh";
-    static String COURSE_LIST_PATH = "/api/v0/course";
-    static String COURSE_ID_PATH = "/api/v0/course/id/*";
-    static String COURSE_HANDLE_PATH = "/api/v0/course/handle/*";
-    static String LESSON_ID_PATH = "/api/v0/lessons/*";
-    static String LESSON_COURSE_PATH = "/api/v0/lessons/course/*";
-    static String PROFILE_SEARCH_PATH = "/api/v0/profile/search";
+    static String LOGIN_PATH = "/api/v1/auth/login";
+    static String REGISTER_PATH = "/api/v1/auth/register";
+    static String REFRESH_PATH = "/api/v1/token/refresh";
+    static String COURSE_LIST_PATH = "/api/v1/course";
+    static String COURSE_ID_PATH = "/api/v1/course/id/*";
+    static String COURSE_HANDLE_PATH = "/api/v1/course/handle/*";
+    static String LESSON_ID_PATH = "/api/v1/lessons/*";
+    static String LESSON_COURSE_PATH = "/api/v1/lessons/course/*";
+    static String PROFILE_SEARCH_PATH = "/api/v1/profile/search";
 
     AuthRateLimitProperties properties;
     ApiErrorResponseWriter errorResponseWriter;

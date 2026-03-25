@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v0/course")
+@RequestMapping("/api/v1/course")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @SecurityRequirement(name = "bearerAuth")
@@ -57,7 +57,7 @@ public class CourseController {
     EnrollmentMapper enrollmentMapper;
 
     @GetMapping
-    @Operation(summary = "Получить список доступных курсов", description = "Возвращает курсы, видимые текущему пользователю. Анонимный доступ не разрешён security-конфигурацией. Для non-admin это опубликованные курсы и курсы, доступные по ownership/editor/enrollment-правилам.")
+    @Operation(summary = "Получить список доступных курсов", description = "Возвращает курсы, видимые текущему пользователю. Для обычных пользователей это опубликованные курсы и курсы, доступные по правилам владения, редактирования и записи.")
     @ApiResponse(responseCode = "200", description = "Курсы получены",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = PageResponseDTO.class)))
@@ -128,7 +128,7 @@ public class CourseController {
     }
 
     @GetMapping("/id/{id}")
-    @Operation(summary = "Получить курс по id", description = "Возвращает курс по id, если у текущего пользователя есть к нему доступ. Видимость зависит от состояния курса, ownership, editor-прав и enrollment.")
+    @Operation(summary = "Получить курс по id", description = "Возвращает курс по id, если у текущего пользователя есть к нему доступ. Видимость зависит от состояния курса, владения, прав редактора и записи на курс.")
     @PreAuthorize("permitAll()")
     public ResponseEntity<CourseDTO> getCourse(
             @PathVariable Long id,
@@ -139,7 +139,7 @@ public class CourseController {
     }
 
     @GetMapping("/handle/{handle}")
-    @Operation(summary = "Получить курс по handle", description = "Возвращает курс по handle, если у текущего пользователя есть к нему доступ. Видимость зависит от состояния курса, ownership, editor-прав и enrollment.")
+    @Operation(summary = "Получить курс по handle", description = "Возвращает курс по handle, если у текущего пользователя есть к нему доступ. Видимость зависит от состояния курса, владения, прав редактора и записи на курс.")
     @PreAuthorize("permitAll()")
     public ResponseEntity<CourseDTO> getCourse(
             @PathVariable String handle,
@@ -163,7 +163,7 @@ public class CourseController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Удалить курс", description = "Удаляет курс вместе со связанными уроками, attachment-ами и очисткой orphan-файлов. Фактический бизнес-доступ: OWNER(course)|ADMIN.")
+    @Operation(summary = "Удалить курс", description = "Удаляет курс вместе со связанными уроками, вложениями и очисткой файлов без владельца. Фактический бизнес-доступ: OWNER(course)|ADMIN.")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<Void> deleteCourse(
             @PathVariable Long id,
@@ -244,7 +244,7 @@ public class CourseController {
     }
 
     @PostMapping("/{id}/enroll")
-    @Operation(summary = "Записаться на курс", description = "Записывает текущего пользователя на курс. Разрешено только ролям GUEST/STUDENT, не более одной записи на пару user-course и только при наличии свободных мест.")
+    @Operation(summary = "Записаться на курс", description = "Записывает текущего пользователя на курс. Разрешено только ролям GUEST/STUDENT, не более одной записи на пару пользователь-курс и только при наличии свободных мест.")
     @PreAuthorize("hasAnyRole('GUEST', 'STUDENT')")
     public ResponseEntity<Void> enroll(
             @PathVariable Long id,
@@ -266,7 +266,7 @@ public class CourseController {
     }
 
     @GetMapping("/{id}/members")
-    @Operation(summary = "Получить участников курса", description = "Возвращает enrollment-записи курса. Требуется аутентифицированный пользователь с ролью GUEST/STUDENT/TEACHER/ADMIN, но фактический доступ есть только у OWNER(course)|EDITOR(course)|ENROLLED|ADMIN.")
+    @Operation(summary = "Получить участников курса", description = "Возвращает записи участников курса. Требуется аутентифицированный пользователь, но фактический доступ есть только у OWNER(course)|EDITOR(course)|ENROLLED|ADMIN.")
     @ApiResponse(responseCode = "200", description = "Участники курса получены",
             content = @Content(mediaType = "application/json",
                     array = @ArraySchema(schema = @Schema(implementation = EnrollmentDTO.class))))
@@ -282,7 +282,7 @@ public class CourseController {
     }
 
     @GetMapping("/{id}/students")
-    @Operation(summary = "Получить студентов курса", description = "Возвращает enrollment-записи студентов курса. Требуется роль TEACHER или ADMIN, но фактический бизнес-доступ: OWNER(course)|ADMIN.")
+    @Operation(summary = "Получить студентов курса", description = "Возвращает записи студентов курса. Требуется роль TEACHER или ADMIN, но фактический бизнес-доступ: OWNER(course)|ADMIN.")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<List<EnrollmentDTO>> getStudents(
             @PathVariable Long id,
@@ -293,7 +293,7 @@ public class CourseController {
     }
 
     @GetMapping("/{id}/teachers")
-    @Operation(summary = "Получить преподавателей курса", description = "Возвращает owner курса и редакторов, выступающих преподавателями. Требуется роль TEACHER или ADMIN, но фактический бизнес-доступ: OWNER(course)|ADMIN. Guest-доступ не разрешён.")
+    @Operation(summary = "Получить преподавателей курса", description = "Возвращает владельца курса и редакторов, выступающих преподавателями. Требуется роль TEACHER или ADMIN, но фактический бизнес-доступ: OWNER(course)|ADMIN. Гостевой доступ не разрешён.")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<List<CourseTeacherDTO>> getTeachers(
             @PathVariable Long id,
@@ -303,7 +303,7 @@ public class CourseController {
     }
 
     @PostMapping("/{id}/teachers")
-    @Operation(summary = "Назначить преподавателя курса", description = "Добавляет пользователя с ролью TEACHER или ADMIN как преподавателя/редактора курса. Требуется роль TEACHER или ADMIN, но фактический бизнес-доступ: OWNER(course)|ADMIN.")
+    @Operation(summary = "Назначить преподавателя курса", description = "Добавляет пользователя с ролью TEACHER или ADMIN как преподавателя или редактора курса. Требуется роль TEACHER или ADMIN, но фактический бизнес-доступ: OWNER(course)|ADMIN.")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<Void> addTeacher(
             @PathVariable Long id,
@@ -315,10 +315,10 @@ public class CourseController {
     }
 
     @DeleteMapping("/{id}/teachers/{teacherId}")
-    @Operation(summary = "Удалить преподавателя курса", description = "Удаляет преподавателя/редактора из курса. Owner удалить нельзя. Требуется роль TEACHER или ADMIN, но фактический бизнес-доступ: OWNER(course)|ADMIN.")
+    @Operation(summary = "Удалить преподавателя курса", description = "Удаляет преподавателя или редактора из курса. Владельца удалить нельзя. Требуется роль TEACHER или ADMIN, но фактический бизнес-доступ: OWNER(course)|ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Преподаватель удалён"),
-            @ApiResponse(responseCode = "400", description = "Некорректный запрос или попытка удалить owner",
+            @ApiResponse(responseCode = "400", description = "Некорректный запрос или попытка удалить владельца",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
             @ApiResponse(responseCode = "403", description = "Доступ запрещён",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),

@@ -16,7 +16,7 @@ public final class OpenApiExamples {
               "timestamp": "2026-03-22T01:15:00Z",
               "error": "Forbidden",
               "code": "access_denied",
-              "path": "/api/v0/course/42/teachers",
+              "path": "/api/v1/course/42/teachers",
               "message": "Access is denied",
               "fieldErrors": {}
             }
@@ -26,7 +26,7 @@ public final class OpenApiExamples {
               "timestamp": "2026-03-22T01:15:00Z",
               "error": "Bad Request",
               "code": "validation_failed",
-              "path": "/api/v0/auth/register",
+              "path": "/api/v1/auth/register",
               "message": "Request validation failed",
               "fieldErrors": {
                 "email": "must be a well-formed email address"

@@ -34,11 +34,11 @@ class AuthRateLimitFilterTest {
     void shouldReturnTooManyRequestsWhenLimitIsExceeded() throws Exception {
         MockFilterChain chain = new MockFilterChain();
 
-        MockHttpServletRequest firstRequest = request("/api/v0/auth/login", "127.0.0.1");
+        MockHttpServletRequest firstRequest = request("/api/v1/auth/login", "127.0.0.1");
         MockHttpServletResponse firstResponse = new MockHttpServletResponse();
         filter.doFilter(firstRequest, firstResponse, chain);
 
-        MockHttpServletRequest secondRequest = request("/api/v0/auth/login", "127.0.0.1");
+        MockHttpServletRequest secondRequest = request("/api/v1/auth/login", "127.0.0.1");
         MockHttpServletResponse secondResponse = new MockHttpServletResponse();
         filter.doFilter(secondRequest, secondResponse, new MockFilterChain());
 
@@ -50,7 +50,7 @@ class AuthRateLimitFilterTest {
 
     @Test
     void shouldSkipNonProtectedPaths() throws Exception {
-        MockHttpServletRequest request = request("/api/v0/profile", "127.0.0.1");
+        MockHttpServletRequest request = request("/api/v1/profile", "127.0.0.1");
         MockHttpServletResponse response = new MockHttpServletResponse();
         MockFilterChain chain = new MockFilterChain();
 
@@ -61,11 +61,11 @@ class AuthRateLimitFilterTest {
 
     @Test
     void shouldRateLimitAnonymousCourseCatalogRequests() throws Exception {
-        MockHttpServletRequest firstRequest = getRequest("/api/v0/course", "127.0.0.1");
+        MockHttpServletRequest firstRequest = getRequest("/api/v1/course", "127.0.0.1");
         MockHttpServletResponse firstResponse = new MockHttpServletResponse();
         filter.doFilter(firstRequest, firstResponse, new MockFilterChain());
 
-        MockHttpServletRequest secondRequest = getRequest("/api/v0/course", "127.0.0.1");
+        MockHttpServletRequest secondRequest = getRequest("/api/v1/course", "127.0.0.1");
         MockHttpServletResponse secondResponse = new MockHttpServletResponse();
         filter.doFilter(secondRequest, secondResponse, new MockFilterChain());
 
@@ -75,12 +75,12 @@ class AuthRateLimitFilterTest {
 
     @Test
     void shouldSkipPublicReadLimiterForAuthenticatedRequest() throws Exception {
-        MockHttpServletRequest firstRequest = getRequest("/api/v0/course", "127.0.0.1");
+        MockHttpServletRequest firstRequest = getRequest("/api/v1/course", "127.0.0.1");
         firstRequest.addHeader("Authorization", "Bearer token");
         MockHttpServletResponse firstResponse = new MockHttpServletResponse();
         filter.doFilter(firstRequest, firstResponse, new MockFilterChain());
 
-        MockHttpServletRequest secondRequest = getRequest("/api/v0/course", "127.0.0.1");
+        MockHttpServletRequest secondRequest = getRequest("/api/v1/course", "127.0.0.1");
         secondRequest.addHeader("Authorization", "Bearer token");
         MockHttpServletResponse secondResponse = new MockHttpServletResponse();
         filter.doFilter(secondRequest, secondResponse, new MockFilterChain());

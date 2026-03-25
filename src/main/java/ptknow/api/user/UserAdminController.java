@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v0/users")
+@RequestMapping("/api/v1/users")
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -48,10 +48,9 @@ public class UserAdminController {
     AdminUserService adminUserService;
 
     @GetMapping
-    @Operation(summary = "Получить список пользователей", description = "Возвращает страницу пользователей. Только для ADMIN.")
-    @ApiResponse(responseCode = "200", description = "Пользователи получены",
-            content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = PageResponseDTO.class)))
+    @Operation(summary = "Получить список пользователей", description = "Возвращает страницу пользователей с фильтрацией и сортировкой. Доступно только ADMIN.")
+    @ApiResponse(responseCode = "200", description = "Список пользователей получен",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = PageResponseDTO.class)))
     public ResponseEntity<PageResponseDTO<AdminUserDTO>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -76,7 +75,7 @@ public class UserAdminController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Получить пользователя по id", description = "Возвращает одного пользователя по id. Только для ADMIN.")
+    @Operation(summary = "Получить пользователя по id", description = "Возвращает одного пользователя по id. Доступно только ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Пользователь получен",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = AdminUserDTO.class))),
@@ -88,7 +87,7 @@ public class UserAdminController {
     }
 
     @PatchMapping("/{id}/role")
-    @Operation(summary = "Обновить роль пользователя", description = "Изменяет роль указанного пользователя. Только для ADMIN.")
+    @Operation(summary = "Изменить роль пользователя", description = "Изменяет роль указанного пользователя. Доступно только ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Роль обновлена",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = AdminUserDTO.class))),
@@ -106,7 +105,7 @@ public class UserAdminController {
     }
 
     @PatchMapping("/{id}/status")
-    @Operation(summary = "Обновить статус пользователя", description = "Изменяет статус указанного пользователя. Только для ADMIN.")
+    @Operation(summary = "Изменить статус пользователя", description = "Изменяет статус указанного пользователя. Доступно только ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Статус обновлён",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = AdminUserDTO.class))),

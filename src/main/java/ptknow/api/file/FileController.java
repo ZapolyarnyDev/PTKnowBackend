@@ -35,7 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v0/files")
+@RequestMapping("/api/v1/files")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @SecurityRequirement(name = "bearerAuth")
@@ -47,7 +47,7 @@ public class FileController {
     FileWriteService fileWriteService;
 
     @GetMapping("/{id}")
-    @Operation(summary = "Скачать файл", description = "Возвращает бинарное содержимое файла, если текущий пользователь имеет право чтения по visibility и ownership-правилам.")
+    @Operation(summary = "Скачать файл", description = "Возвращает бинарное содержимое файла, если текущий пользователь имеет право чтения по правилам видимости и владения.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Бинарный поток файла",
                     content = @Content(mediaType = "application/octet-stream")),
