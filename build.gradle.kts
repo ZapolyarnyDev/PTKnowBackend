@@ -32,6 +32,7 @@ dependencies {
 	implementation(libs.spring.boot.starter.json)
 	implementation(libs.spring.boot.starter.validation)
 	implementation(libs.spring.boot.starter.web)
+	implementation(libs.spring.boot.starter.actuator)
 	implementation(libs.spring.boot.starter.flyway)
 
 	implementation(libs.flyway.database.postgresql)
@@ -67,4 +68,3 @@ tasks.withType<JavaCompile> {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
-

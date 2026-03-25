@@ -19,6 +19,7 @@ spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-
 spring-boot-starter-oauth2-resource-server = { module = "org.springframework.boot:spring-boot-starter-oauth2-resource-server" }
 spring-boot-starter-flyway = { module = "org.springframework.boot:spring-boot-starter-flyway" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }

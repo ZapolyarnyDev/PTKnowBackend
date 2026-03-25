@@ -1,14 +1,10 @@
 package ptknow.config;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
-import ptknow.filter.AuthRateLimitFilter;
-import ptknow.filter.JwtAuthFilter;
-import ptknow.properties.JwtProperties;
-import ptknow.config.security.RestAccessDeniedHandler;
-import ptknow.config.security.RestAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -23,10 +19,14 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.http.HttpMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import ptknow.config.security.RestAccessDeniedHandler;
+import ptknow.config.security.RestAuthenticationEntryPoint;
+import ptknow.filter.AuthRateLimitFilter;
+import ptknow.filter.JwtAuthFilter;
+import ptknow.properties.JwtProperties;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.util.List;
@@ -60,7 +60,10 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/v3/api-docs.yaml",
                                 "/swagger-ui.html",
-                                "/swagger-ui/**"
+                                "/swagger-ui/**",
+                                "/actuator/health",
+                                "/actuator/health/**",
+                                "/actuator/info"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v0/course",
@@ -116,4 +119,3 @@ public class SecurityConfig {
         return decoder;
     }
 }
-

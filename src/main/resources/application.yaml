@@ -89,3 +89,14 @@ security:
     public-profile-search:
       max-requests: ${SECURITY_RATE_LIMIT_PUBLIC_PROFILE_SEARCH_MAX:30}
       window: ${SECURITY_RATE_LIMIT_PUBLIC_PROFILE_SEARCH_WINDOW:PT1M}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
