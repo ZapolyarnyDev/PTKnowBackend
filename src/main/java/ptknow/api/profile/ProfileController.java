@@ -44,14 +44,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @SecurityRequirement(name = "bearerAuth")
-@Tag(name = "Profiles", description = "Profile read and update endpoints")
+@Tag(name = "Профиль", description = "Получение, поиск и изменение пользовательских профилей")
 public class ProfileController {
 
     ProfileService profileService;
     ProfileMapper profileMapper;
 
     @GetMapping
-    @Operation(summary = "Get my profile", description = "Returns the profile of the current authenticated user.")
+    @Operation(summary = "Получить мой профиль", description = "Возвращает профиль текущего аутентифицированного пользователя.")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ProfileResponseDTO> getMyProfile(@AuthenticationPrincipal Auth user) {
         var profile = profileService.getProfile(user.getId());
@@ -59,7 +59,7 @@ public class ProfileController {
     }
 
     @GetMapping("/me")
-    @Operation(summary = "Get my profile via alias", description = "Alias for GET /api/v0/profile.")
+    @Operation(summary = "Получить мой профиль через alias", description = "Алиас для GET /api/v0/profile.")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ProfileResponseDTO> getMyProfileAlias(@AuthenticationPrincipal Auth user) {
         var profile = profileService.getProfile(user.getId());
@@ -67,8 +67,8 @@ public class ProfileController {
     }
 
     @GetMapping("/search")
-    @Operation(summary = "Search profiles", description = "Returns a paginated profile list filtered by full name or handle.")
-    @ApiResponse(responseCode = "200", description = "Profiles returned",
+    @Operation(summary = "Поиск профилей", description = "Возвращает страницу профилей с поиском по полному имени или handle.")
+    @ApiResponse(responseCode = "200", description = "Профили получены",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = PageResponseDTO.class)))
     public ResponseEntity<PageResponseDTO<ProfileResponseDTO>> searchProfiles(
             @AuthenticationPrincipal Auth user,
@@ -93,11 +93,11 @@ public class ProfileController {
     }
 
     @GetMapping("/{handle}")
-    @Operation(summary = "Get profile by handle", description = "Returns a profile by handle.")
+    @Operation(summary = "Получить профиль по handle", description = "Возвращает профиль по handle.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Profile returned",
+            @ApiResponse(responseCode = "200", description = "Профиль получен",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProfileResponseDTO.class))),
-            @ApiResponse(responseCode = "404", description = "Profile not found",
+            @ApiResponse(responseCode = "404", description = "Профиль не найден",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<ProfileResponseDTO> getProfileByHandle(@PathVariable String handle) {
@@ -106,7 +106,7 @@ public class ProfileController {
     }
 
     @GetMapping("/id/{userId}")
-    @Operation(summary = "Get profile by user id", description = "Returns a profile by user id. Access is checked in service layer.")
+    @Operation(summary = "Получить профиль по user id", description = "Возвращает профиль по user id. Доступ дополнительно проверяется на уровне сервиса.")
     public ResponseEntity<ProfileResponseDTO> getProfileByUserId(
             @PathVariable UUID userId,
             @AuthenticationPrincipal Auth user
@@ -116,7 +116,7 @@ public class ProfileController {
     }
 
     @PostMapping("/avatar")
-    @Operation(summary = "Upload or replace avatar", description = "Uploads an avatar file for the current authenticated user.")
+    @Operation(summary = "Загрузить или заменить аватар", description = "Загружает аватар текущего аутентифицированного пользователя.")
     public ResponseEntity<ProfileResponseDTO> updateAvatar(
             @AuthenticationPrincipal Auth user,
             @RequestParam("file") MultipartFile file
@@ -126,14 +126,14 @@ public class ProfileController {
     }
 
     @DeleteMapping("/avatar")
-    @Operation(summary = "Delete avatar", description = "Deletes the avatar of the current authenticated user.")
+    @Operation(summary = "Удалить аватар", description = "Удаляет аватар текущего аутентифицированного пользователя.")
     public ResponseEntity<Void> deleteAvatar(@AuthenticationPrincipal Auth user) throws IOException {
         profileService.deleteAvatar(user.getId());
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping
-    @Operation(summary = "Replace profile", description = "Fully replaces editable fields of the current authenticated user profile.")
+    @Operation(summary = "Полностью заменить профиль", description = "Полностью заменяет редактируемые поля профиля текущего пользователя.")
     public ResponseEntity<ProfileResponseDTO> updateMyProfile(
             @AuthenticationPrincipal Auth user,
             @Valid @RequestBody ProfileUpdateDTO dto
@@ -143,13 +143,13 @@ public class ProfileController {
     }
 
     @PatchMapping
-    @Operation(summary = "Patch profile", description = "Partially updates editable fields of the current authenticated user profile.")
+    @Operation(summary = "Частично обновить профиль", description = "Частично обновляет редактируемые поля профиля текущего пользователя.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Profile updated",
+            @ApiResponse(responseCode = "200", description = "Профиль обновлён",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProfileResponseDTO.class))),
-            @ApiResponse(responseCode = "400", description = "Validation error",
+            @ApiResponse(responseCode = "400", description = "Ошибка валидации",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "404", description = "Profile not found",
+            @ApiResponse(responseCode = "404", description = "Профиль не найден",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<ProfileResponseDTO> patchMyProfile(

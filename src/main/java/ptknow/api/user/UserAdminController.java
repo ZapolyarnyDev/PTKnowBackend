@@ -42,14 +42,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @SecurityRequirement(name = "bearerAuth")
-@Tag(name = "User Administration", description = "Admin-only user management endpoints")
+@Tag(name = "Администрирование пользователей", description = "Методы управления пользователями, доступные только ADMIN")
 public class UserAdminController {
 
     AdminUserService adminUserService;
 
     @GetMapping
-    @Operation(summary = "Get users", description = "Returns a paginated user list. Admin only.")
-    @ApiResponse(responseCode = "200", description = "Users returned",
+    @Operation(summary = "Получить список пользователей", description = "Возвращает страницу пользователей. Только для ADMIN.")
+    @ApiResponse(responseCode = "200", description = "Пользователи получены",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = PageResponseDTO.class)))
     public ResponseEntity<PageResponseDTO<AdminUserDTO>> getAllUsers(
@@ -76,11 +76,11 @@ public class UserAdminController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get user by id", description = "Returns one user by id. Admin only.")
+    @Operation(summary = "Получить пользователя по id", description = "Возвращает одного пользователя по id. Только для ADMIN.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "User returned",
+            @ApiResponse(responseCode = "200", description = "Пользователь получен",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = AdminUserDTO.class))),
-            @ApiResponse(responseCode = "404", description = "User not found",
+            @ApiResponse(responseCode = "404", description = "Пользователь не найден",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<AdminUserDTO> getUserById(@PathVariable UUID id) {
@@ -88,13 +88,13 @@ public class UserAdminController {
     }
 
     @PatchMapping("/{id}/role")
-    @Operation(summary = "Update user role", description = "Changes the role of the specified user. Admin only.")
+    @Operation(summary = "Обновить роль пользователя", description = "Изменяет роль указанного пользователя. Только для ADMIN.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Role updated",
+            @ApiResponse(responseCode = "200", description = "Роль обновлена",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = AdminUserDTO.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid request body",
+            @ApiResponse(responseCode = "400", description = "Некорректное тело запроса",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "404", description = "User not found",
+            @ApiResponse(responseCode = "404", description = "Пользователь не найден",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<AdminUserDTO> updateRole(
@@ -106,13 +106,13 @@ public class UserAdminController {
     }
 
     @PatchMapping("/{id}/status")
-    @Operation(summary = "Update user status", description = "Changes the status of the specified user. Admin only.")
+    @Operation(summary = "Обновить статус пользователя", description = "Изменяет статус указанного пользователя. Только для ADMIN.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Status updated",
+            @ApiResponse(responseCode = "200", description = "Статус обновлён",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = AdminUserDTO.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid request body",
+            @ApiResponse(responseCode = "400", description = "Некорректное тело запроса",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "404", description = "User not found",
+            @ApiResponse(responseCode = "404", description = "Пользователь не найден",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<AdminUserDTO> updateStatus(
