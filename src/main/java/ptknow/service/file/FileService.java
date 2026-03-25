@@ -1,24 +1,23 @@
 package ptknow.service.file;
 
-import ptknow.model.file.File;
-import ptknow.dto.file.FileMetaDTO;
-import ptknow.exception.file.InvalidFileUploadException;
-import ptknow.exception.file.FileNotFoundException;
-import ptknow.properties.FileStorageProperties;
-import ptknow.repository.file.FileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
+import ptknow.dto.file.FileMetaDTO;
+import ptknow.exception.file.FileNotFoundException;
+import ptknow.exception.file.InvalidFileUploadException;
+import ptknow.model.file.File;
+import ptknow.properties.FileStorageProperties;
+import ptknow.repository.file.FileRepository;
+import ptknow.service.file.storage.FileStorage;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.io.InputStream;
 import java.nio.file.InvalidPathException;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -28,9 +27,10 @@ public class FileService {
 
     private final FileRepository fileRepository;
     private final FileStorageProperties fileStorageProperties;
+    private final FileStorage fileStorage;
 
     public record OpenedFile(
-            Path path,
+            InputStream inputStream,
             String contentType,
             String originalFilename,
             long size
@@ -39,27 +39,21 @@ public class FileService {
     public File saveFile(MultipartFile file) throws IOException {
         validateUpload(file);
 
-        Path root = Paths.get(fileStorageProperties.getUploadDir());
-        if (!Files.exists(root)) {
-            Files.createDirectories(root);
-        }
-
         UUID fileId = UUID.randomUUID();
-        Path filePath = root.resolve(fileId.toString());
-        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        FileStorage.StoredFile storedFile = fileStorage.store(fileId, file);
 
         try {
             File entity = File.builder()
                     .id(fileId)
                     .originalFilename(sanitizeDownloadFilename(file.getOriginalFilename(), fileId))
                     .contentType(resolveDownloadContentType(file.getContentType()).toString())
-                    .storagePath(filePath.toString())
+                    .storagePath(storedFile.storageKey())
                     .uploadedAt(Instant.now())
                     .build();
 
             return fileRepository.save(entity);
         } catch (RuntimeException e) {
-            Files.deleteIfExists(filePath);
+            fileStorage.delete(storedFile.storageKey());
             throw e;
         }
     }
@@ -68,16 +62,12 @@ public class FileService {
         File fileEntity = fileRepository.findById(id)
                 .orElseThrow(() -> new FileNotFoundException("File not found"));
 
-        Path path = Paths.get(fileEntity.getStoragePath());
-        if (!Files.exists(path)) {
-            throw new FileNotFoundException("Stored file content not found");
-        }
-
+        FileStorage.OpenedFile storedFile = openStoredFile(fileEntity);
         return new OpenedFile(
-                path,
+                storedFile.inputStream(),
                 fileEntity.getContentType(),
                 fileEntity.getOriginalFilename(),
-                Files.size(path)
+                storedFile.size()
         );
     }
 
@@ -124,16 +114,11 @@ public class FileService {
         File fileEntity = fileRepository.findById(id)
                 .orElseThrow(() -> new FileNotFoundException("File not found"));
 
-        Path path = Paths.get(fileEntity.getStoragePath());
-        if (!Files.exists(path)) {
-            throw new FileNotFoundException("Stored file content not found");
-        }
-
         return FileMetaDTO.builder()
                 .id(fileEntity.getId())
                 .originalFilename(fileEntity.getOriginalFilename())
                 .contentType(fileEntity.getContentType())
-                .size(Files.size(path))
+                .size(fileStorage.size(fileEntity.getStoragePath()))
                 .uploadedAt(fileEntity.getUploadedAt())
                 .build();
     }
@@ -142,18 +127,25 @@ public class FileService {
         File fileEntity = fileRepository.findById(id)
                 .orElseThrow(() -> new FileNotFoundException("File not found"));
 
-        Path path = Paths.get(fileEntity.getStoragePath());
         fileRepository.delete(fileEntity);
-        deletePhysicalFileAfterCommit(path);
+        deleteStoredFileAfterCommit(fileEntity.getStoragePath());
     }
 
-    private void deletePhysicalFileAfterCommit(Path path) throws IOException {
+    private FileStorage.OpenedFile openStoredFile(File fileEntity) throws IOException {
+        try {
+            return fileStorage.open(fileEntity.getStoragePath());
+        } catch (IOException e) {
+            throw new FileNotFoundException("Stored file content not found");
+        }
+    }
+
+    private void deleteStoredFileAfterCommit(String storageKey) throws IOException {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
                     try {
-                        Files.deleteIfExists(path);
+                        fileStorage.delete(storageKey);
                     } catch (IOException ignored) {
                     }
                 }
@@ -161,7 +153,7 @@ public class FileService {
             return;
         }
 
-        Files.deleteIfExists(path);
+        fileStorage.delete(storageKey);
     }
 
     private void validateUpload(MultipartFile file) {
@@ -173,6 +165,4 @@ public class FileService {
             throw new InvalidFileUploadException("Uploaded file exceeds the allowed size");
         }
     }
-
 }
-

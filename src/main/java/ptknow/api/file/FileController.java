@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.UUID;
 
 @RestController
@@ -66,7 +65,7 @@ public class FileController {
             throw new FileAccessDeniedException("You don't have permissions to view this file");
 
         var openedFile = fileService.openFile(id);
-        var stream = new InputStreamResource(Files.newInputStream(openedFile.path()));
+        var stream = new InputStreamResource(openedFile.inputStream());
         String filename = fileService.sanitizeDownloadFilename(openedFile.originalFilename(), id);
         var contentType = fileService.resolveDownloadContentType(openedFile.contentType());
 
