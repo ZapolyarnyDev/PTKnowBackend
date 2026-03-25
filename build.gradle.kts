@@ -43,6 +43,7 @@ dependencies {
 	implementation(libs.spring.boot.starter.oauth2.resource.server)
 	implementation(libs.springdoc.openapi.starter.webmvc.ui)
 	implementation(libs.caffeine)
+	implementation(libs.aws.sdk.s3)
 
 	compileOnly(libs.mapstruct)
 	annotationProcessor(libs.mapstruct.processor)
@@ -66,3 +67,4 @@ tasks.withType<JavaCompile> {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+

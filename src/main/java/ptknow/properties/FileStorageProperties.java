@@ -24,4 +24,6 @@ public class FileStorageProperties {
 
     @Positive
     long maxFileSizeBytes = 10 * 1024 * 1024;
+
+    S3StorageProperties s3 = new S3StorageProperties();
 }

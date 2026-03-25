@@ -33,6 +33,9 @@ app:
   file:
     type: LOCAL
     upload-dir: build/test-uploads
+    s3:
+      region: us-east-1
+      path-style-access-enabled: true
 
 security:
   jwt:
