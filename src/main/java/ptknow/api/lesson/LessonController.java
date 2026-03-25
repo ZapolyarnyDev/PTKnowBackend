@@ -14,6 +14,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import ptknow.api.exception.ApiError;
@@ -122,12 +124,12 @@ public class LessonController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @PostMapping("/{lessonId}/materials")
+    @PostMapping(value = "/{lessonId}/materials", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Загрузить материал урока", description = "Загружает файл и прикрепляет его как материал урока. Фактический доступ: OWNER(lesson)|ADMIN.")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<UUID> uploadMaterial(
             @PathVariable Long lessonId,
-            @RequestParam("file") MultipartFile file,
+            @RequestPart("file") MultipartFile file,
             @AuthenticationPrincipal Auth auth
     ) throws IOException {
         UUID materialId = lessonService.uploadMaterial(lessonId, auth, file);

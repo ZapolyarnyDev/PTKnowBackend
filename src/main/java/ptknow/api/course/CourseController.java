@@ -31,6 +31,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -148,12 +149,12 @@ public class CourseController {
         return ResponseEntity.ok(course);
     }
 
-    @PostMapping("/{id}/preview")
+    @PostMapping(value = "/{id}/preview", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Загрузить или заменить preview курса", description = "Загружает preview-файл курса. Фактический бизнес-доступ: OWNER(course)|EDITOR(course)|ADMIN.")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<CourseDTO> updatePreview(
             @PathVariable Long id,
-            @RequestParam("file") MultipartFile file,
+            @RequestPart("file") MultipartFile file,
             @AuthenticationPrincipal Auth entity
     ) throws IOException {
         var updatedProfile = courseService.updatePreview(id, entity, file);
@@ -334,4 +335,3 @@ public class CourseController {
         return ResponseEntity.noContent().build();
     }
 }
-

@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import ptknow.api.exception.ApiError;
@@ -115,11 +117,11 @@ public class ProfileController {
         return ResponseEntity.ok(profileMapper.toDto(profile));
     }
 
-    @PostMapping("/avatar")
+    @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Загрузить или заменить аватар", description = "Загружает аватар текущего аутентифицированного пользователя.")
     public ResponseEntity<ProfileResponseDTO> updateAvatar(
             @AuthenticationPrincipal Auth user,
-            @RequestParam("file") MultipartFile file
+            @RequestPart("file") MultipartFile file
     ) throws IOException {
         var updatedProfile = profileService.updateAvatar(user.getId(), file);
         return ResponseEntity.ok(profileMapper.toDto(updatedProfile));
