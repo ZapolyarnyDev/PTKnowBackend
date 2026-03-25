@@ -1,16 +1,5 @@
 package ptknow.service.profile;
 
-import ptknow.dto.profile.ProfileUpdateDTO;
-import ptknow.model.file.File;
-import ptknow.model.profile.Profile;
-import ptknow.model.auth.Auth;
-import ptknow.exception.user.UserNotFoundException;
-import ptknow.generator.handle.HandleGenerator;
-import ptknow.repository.profile.ProfileRepository;
-import ptknow.service.HandleService;
-import ptknow.service.OwnershipService;
-import ptknow.service.file.FileAttachmentService;
-import ptknow.service.file.FileService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -19,18 +8,36 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.multipart.MultipartFile;
+import ptknow.config.CacheConfig;
+import ptknow.config.cache.ProfileCacheKeys;
+import ptknow.dto.profile.ProfileDetailsDTO;
+import ptknow.dto.profile.ProfileUpdateDTO;
+import ptknow.exception.user.UserNotFoundException;
+import ptknow.generator.handle.HandleGenerator;
+import ptknow.mapper.ApiViewMapper;
+import ptknow.mapper.profile.ProfileMapper;
+import ptknow.model.auth.Auth;
 import ptknow.model.auth.Role;
+import ptknow.model.course.Course;
+import ptknow.model.file.File;
 import ptknow.model.file.attachment.FileVisibility;
 import ptknow.model.file.attachment.resource.Purpose;
 import ptknow.model.file.attachment.resource.ResourceType;
-import ptknow.config.CacheConfig;
-import ptknow.config.cache.ProfileCacheKeys;
+import ptknow.model.profile.Profile;
+import ptknow.repository.course.CourseRepository;
+import ptknow.repository.enrollment.EnrollmentRepository;
+import ptknow.repository.profile.ProfileRepository;
+import ptknow.service.HandleService;
+import ptknow.service.OwnershipService;
+import ptknow.service.file.FileAttachmentService;
+import ptknow.service.file.FileService;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -43,6 +50,10 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
     ProfileRepository repository;
     HandleGenerator handleGenerator;
     CacheManager cacheManager;
+    CourseRepository courseRepository;
+    EnrollmentRepository enrollmentRepository;
+    ProfileMapper profileMapper;
+    ApiViewMapper apiViewMapper;
 
     @Transactional
     public Profile createProfile(String fullName, Auth user) {
@@ -133,6 +144,23 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
     }
 
     @Transactional(readOnly = true)
+    public ProfileDetailsDTO getOwnProfileDetails(UUID userId) {
+        return buildDetails(getProfile(userId), false);
+    }
+
+    @Transactional(readOnly = true)
+    public ProfileDetailsDTO getPublicProfileDetails(String handle) {
+        return buildDetails(getByHandle(handle), true);
+    }
+
+    @Transactional(readOnly = true)
+    public ProfileDetailsDTO getVisibleProfileDetails(UUID userId, Auth initiator) {
+        Profile profile = getProfile(userId, initiator);
+        boolean publishedOnly = initiator == null || !userId.equals(initiator.getId());
+        return buildDetails(profile, publishedOnly);
+    }
+
+    @Transactional(readOnly = true)
     @Override
     @Cacheable(cacheNames = CacheConfig.PROFILE_BY_HANDLE_CACHE,
             key = "T(ptknow.config.cache.ProfileCacheKeys).byHandle(#handle)")
@@ -178,6 +206,24 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
         return getProfile(resourceId).getUser();
     }
 
+    private ProfileDetailsDTO buildDetails(Profile profile, boolean publishedOnly) {
+        UUID userId = profile.getUser().getId();
+
+        List<Course> enrolledCourses = publishedOnly
+                ? enrollmentRepository.findAllPublishedCourseViewsByUserId(userId)
+                : enrollmentRepository.findAllCourseViewsByUserId(userId);
+
+        List<Course> teachingCourses = publishedOnly
+                ? courseRepository.findAllPublishedTeachingViewByUserId(userId)
+                : courseRepository.findAllTeachingViewByUserId(userId);
+
+        return profileMapper.toDetailsDto(
+                profile,
+                enrolledCourses.stream().map(apiViewMapper::toCourseSummary).toList(),
+                teachingCourses.stream().map(apiViewMapper::toCourseSummary).toList()
+        );
+    }
+
     private boolean canSeeProfile(Auth initiator) {
         if (initiator == null) {
             return true;
@@ -221,4 +267,3 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
         }
     }
 }
-

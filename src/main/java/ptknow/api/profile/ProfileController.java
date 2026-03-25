@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import ptknow.api.exception.ApiError;
 import ptknow.dto.common.PageResponseDTO;
+import ptknow.dto.profile.ProfileDetailsDTO;
 import ptknow.dto.profile.ProfileResponseDTO;
 import ptknow.dto.profile.ProfileUpdateDTO;
 import ptknow.mapper.profile.ProfileMapper;
@@ -53,23 +54,21 @@ public class ProfileController {
     ProfileMapper profileMapper;
 
     @GetMapping
-    @Operation(summary = "Получить мой профиль", description = "Возвращает профиль текущего аутентифицированного пользователя.")
+    @Operation(summary = "Получить мой профиль", description = "Возвращает детальный профиль текущего аутентифицированного пользователя.")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ProfileResponseDTO> getMyProfile(@AuthenticationPrincipal Auth user) {
-        var profile = profileService.getProfile(user.getId());
-        return ResponseEntity.ok(profileMapper.toDto(profile));
+    public ResponseEntity<ProfileDetailsDTO> getMyProfile(@AuthenticationPrincipal Auth user) {
+        return ResponseEntity.ok(profileService.getOwnProfileDetails(user.getId()));
     }
 
     @GetMapping("/me")
     @Operation(summary = "Получить мой профиль через alias", description = "Алиас для GET /api/v0/profile.")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ProfileResponseDTO> getMyProfileAlias(@AuthenticationPrincipal Auth user) {
-        var profile = profileService.getProfile(user.getId());
-        return ResponseEntity.ok(profileMapper.toDto(profile));
+    public ResponseEntity<ProfileDetailsDTO> getMyProfileAlias(@AuthenticationPrincipal Auth user) {
+        return ResponseEntity.ok(profileService.getOwnProfileDetails(user.getId()));
     }
 
     @GetMapping("/search")
-    @Operation(summary = "Поиск профилей", description = "Возвращает страницу профилей с поиском по полному имени или handle.")
+    @Operation(summary = "Поиск профилей", description = "Возвращает лёгкую страницу профилей с поиском по полному имени или handle.")
     @ApiResponse(responseCode = "200", description = "Профили получены",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = PageResponseDTO.class)))
     public ResponseEntity<PageResponseDTO<ProfileResponseDTO>> searchProfiles(
@@ -95,36 +94,34 @@ public class ProfileController {
     }
 
     @GetMapping("/{handle}")
-    @Operation(summary = "Получить профиль по handle", description = "Возвращает профиль по handle.")
+    @Operation(summary = "Получить публичный профиль по handle", description = "Возвращает публичный профиль и только публично видимые курсы пользователя.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Профиль получен",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProfileResponseDTO.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProfileDetailsDTO.class))),
             @ApiResponse(responseCode = "404", description = "Профиль не найден",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
     })
-    public ResponseEntity<ProfileResponseDTO> getProfileByHandle(@PathVariable String handle) {
-        var profile = profileService.getByHandle(handle);
-        return ResponseEntity.ok(profileMapper.toDto(profile));
+    public ResponseEntity<ProfileDetailsDTO> getProfileByHandle(@PathVariable String handle) {
+        return ResponseEntity.ok(profileService.getPublicProfileDetails(handle));
     }
 
     @GetMapping("/id/{userId}")
-    @Operation(summary = "Получить профиль по user id", description = "Возвращает профиль по user id. Доступ дополнительно проверяется на уровне сервиса.")
-    public ResponseEntity<ProfileResponseDTO> getProfileByUserId(
+    @Operation(summary = "Получить профиль по user id", description = "Возвращает профиль по user id. Для non-owner отдаёт только публично видимые курсы пользователя.")
+    public ResponseEntity<ProfileDetailsDTO> getProfileByUserId(
             @PathVariable UUID userId,
             @AuthenticationPrincipal Auth user
     ) {
-        var profile = profileService.getProfile(userId, user);
-        return ResponseEntity.ok(profileMapper.toDto(profile));
+        return ResponseEntity.ok(profileService.getVisibleProfileDetails(userId, user));
     }
 
     @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Загрузить или заменить аватар", description = "Загружает аватар текущего аутентифицированного пользователя.")
-    public ResponseEntity<ProfileResponseDTO> updateAvatar(
+    public ResponseEntity<ProfileDetailsDTO> updateAvatar(
             @AuthenticationPrincipal Auth user,
             @RequestPart("file") MultipartFile file
     ) throws IOException {
-        var updatedProfile = profileService.updateAvatar(user.getId(), file);
-        return ResponseEntity.ok(profileMapper.toDto(updatedProfile));
+        profileService.updateAvatar(user.getId(), file);
+        return ResponseEntity.ok(profileService.getOwnProfileDetails(user.getId()));
     }
 
     @DeleteMapping("/avatar")
@@ -136,30 +133,30 @@ public class ProfileController {
 
     @PutMapping
     @Operation(summary = "Полностью заменить профиль", description = "Полностью заменяет редактируемые поля профиля текущего пользователя.")
-    public ResponseEntity<ProfileResponseDTO> updateMyProfile(
+    public ResponseEntity<ProfileDetailsDTO> updateMyProfile(
             @AuthenticationPrincipal Auth user,
             @Valid @RequestBody ProfileUpdateDTO dto
     ) {
-        var updated = profileService.update(user.getId(), dto);
-        return ResponseEntity.ok(profileMapper.toDto(updated));
+        profileService.update(user.getId(), dto);
+        return ResponseEntity.ok(profileService.getOwnProfileDetails(user.getId()));
     }
 
     @PatchMapping
     @Operation(summary = "Частично обновить профиль", description = "Частично обновляет редактируемые поля профиля текущего пользователя.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Профиль обновлён",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProfileResponseDTO.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProfileDetailsDTO.class))),
             @ApiResponse(responseCode = "400", description = "Ошибка валидации",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class))),
             @ApiResponse(responseCode = "404", description = "Профиль не найден",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiError.class)))
     })
-    public ResponseEntity<ProfileResponseDTO> patchMyProfile(
+    public ResponseEntity<ProfileDetailsDTO> patchMyProfile(
             @AuthenticationPrincipal Auth user,
             @Valid @RequestBody ProfileUpdateDTO dto
     ) {
-        var updated = profileService.update(user.getId(), dto);
-        return ResponseEntity.ok(profileMapper.toDto(updated));
+        profileService.update(user.getId(), dto);
+        return ResponseEntity.ok(profileService.getOwnProfileDetails(user.getId()));
     }
 
     private Sort parseSort(String sort) {
