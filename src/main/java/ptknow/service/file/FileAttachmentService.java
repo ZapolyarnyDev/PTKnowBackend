@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ptknow.exception.course.CourseNotFoundException;
 import ptknow.exception.file.FileAccessDeniedException;
 import ptknow.exception.file.FileAttachmentNotFoundException;
+import ptknow.exception.file.FileNotFoundException;
 import ptknow.exception.file.InvalidResourceIdException;
 import ptknow.exception.lesson.LessonNotFoundException;
 import ptknow.exception.profile.ProfileNotFoundException;
@@ -19,6 +20,7 @@ import ptknow.model.file.attachment.resource.Purpose;
 import ptknow.model.file.attachment.resource.ResourceType;
 import ptknow.repository.course.CourseRepository;
 import ptknow.repository.file.FileAttachmentRepository;
+import ptknow.repository.file.FileRepository;
 import ptknow.repository.lesson.LessonRepository;
 import ptknow.repository.profile.ProfileRepository;
 
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
 public class FileAttachmentService {
 
     FileAttachmentRepository attachmentRepository;
+    FileRepository fileRepository;
     CourseRepository courseRepository;
     LessonRepository lessonRepository;
     ProfileRepository profileRepository;
@@ -52,8 +55,11 @@ public class FileAttachmentService {
         if (!resourceOwner.equals(owner))
             throw new FileAccessDeniedException("Attachment owner does not match resource owner");
 
+        File managedFile = fileRepository.findById(file.getId())
+                .orElseThrow(() -> new FileNotFoundException("File not found"));
+
         FileAttachment attachment = FileAttachment.builder()
-                .file(file)
+                .file(managedFile)
                 .resourceType(resourceType)
                 .resourceId(resourceId)
                 .purpose(purpose)
