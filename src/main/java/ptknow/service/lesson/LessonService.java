@@ -68,8 +68,6 @@ public class LessonService implements OwnershipService<Long>, AccessService<Long
                 .owner(initiator)
                 .build();
 
-        initiator.addOwnedLesson(entity);
-
         Lesson saved = lessonRepository.save(entity);
         courseCacheService.evict(courseId);
         return saved;

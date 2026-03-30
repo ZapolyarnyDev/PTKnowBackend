@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -51,7 +52,7 @@ class EnrollmentServiceTest {
 
     @Test
     void enrollShouldSaveEnrollmentForGuestUser() {
-        Auth initiator = auth(Role.GUEST);
+        Auth initiator = spy(auth(Role.GUEST));
         Course course = course(1L, auth(Role.TEACHER), 10);
 
         when(repository.existsByUser_IdAndCourse_Id(initiator.getId(), course.getId())).thenReturn(false);
@@ -65,9 +66,8 @@ class EnrollmentServiceTest {
         assertSame(initiator, result.getUser());
         assertSame(course, result.getCourse());
         assertNotNull(result.getEnrollSince());
-        assertEquals(1, initiator.getEnrollments().size());
-        assertEquals(1, course.getEnrollments().size());
         verify(repository).save(any(Enrollment.class));
+        verify(initiator, never()).addEnrollment(any(Enrollment.class));
     }
 
     @Test

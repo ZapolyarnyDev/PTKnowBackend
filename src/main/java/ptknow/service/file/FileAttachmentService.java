@@ -67,14 +67,12 @@ public class FileAttachmentService {
                 .owner(owner)
                 .build();
 
-        owner.addFileAttachment(attachment);
         return attachmentRepository.save(attachment);
     }
 
     @Transactional
     public void deleteAllByFileId(UUID fileId) {
         Set<FileAttachment> attachments = attachmentRepository.findAllByFile_Id(fileId);
-        attachments.forEach(attachment -> attachment.getOwner().removeFileAttachment(attachment));
         attachmentRepository.deleteAllInBatch(attachments);
     }
 
@@ -103,7 +101,6 @@ public class FileAttachmentService {
         Set<UUID> fileIds = new LinkedHashSet<>();
         for (FileAttachment attachment : attachments) {
             fileIds.add(attachment.getFile().getId());
-            attachment.getOwner().removeFileAttachment(attachment);
         }
 
         attachmentRepository.deleteAllInBatch(attachments);
@@ -133,7 +130,6 @@ public class FileAttachmentService {
 
     @Transactional
     public void delete(FileAttachment attachment) {
-        attachment.getOwner().removeFileAttachment(attachment);
         attachmentRepository.delete(attachment);
     }
 

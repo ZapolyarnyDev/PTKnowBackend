@@ -46,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -76,7 +77,7 @@ class LessonServiceTest {
     @Test
     void createLessonShouldAllowCourseEditor() {
         Auth owner = auth(Role.TEACHER);
-        Auth editor = auth(Role.TEACHER);
+        Auth editor = spy(auth(Role.TEACHER));
         Course course = course(1L, owner);
         course.addEditor(editor);
         CreateLessonDTO dto = createLessonDto();
@@ -91,6 +92,7 @@ class LessonServiceTest {
         assertSame(course, lesson.getCourse());
         assertEquals(dto.name(), lesson.getName());
         assertEquals(dto.contentMd(), lesson.getContentMd());
+        verify(editor, never()).addOwnedLesson(any(Lesson.class));
     }
 
     @Test

@@ -52,9 +52,6 @@ public class EnrollmentService {
                 .enrollSince(Instant.now())
                 .build();
 
-        course.addEnrollment(enrollment);
-        initiator.addEnrollment(enrollment);
-
         try {
             Enrollment saved = repository.save(enrollment);
             courseCacheService.evict(courseId);
