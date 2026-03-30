@@ -90,8 +90,6 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
                 .state(CourseState.DRAFT)
                 .build();
 
-        initiator.addOwnedCourse(entity);
-
         repository.save(entity);
 
         if (previewFile != null) {
