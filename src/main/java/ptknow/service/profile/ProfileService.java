@@ -145,19 +145,19 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
 
     @Transactional(readOnly = true)
     public ProfileDetailsDTO getOwnProfileDetails(UUID userId) {
-        return buildDetails(getProfile(userId), false);
+        return buildDetails(getProfile(userId), false, true);
     }
 
     @Transactional(readOnly = true)
     public ProfileDetailsDTO getPublicProfileDetails(String handle) {
-        return buildDetails(getByHandle(handle), true);
+        return buildDetails(getByHandle(handle), true, false);
     }
 
     @Transactional(readOnly = true)
     public ProfileDetailsDTO getVisibleProfileDetails(UUID userId, Auth initiator) {
         Profile profile = getProfile(userId, initiator);
         boolean publishedOnly = initiator == null || !userId.equals(initiator.getId());
-        return buildDetails(profile, publishedOnly);
+        return buildDetails(profile, publishedOnly, !publishedOnly || initiator.getRole() == Role.ADMIN);
     }
 
     @Transactional(readOnly = true)
@@ -206,7 +206,7 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
         return getProfile(resourceId).getUser();
     }
 
-    private ProfileDetailsDTO buildDetails(Profile profile, boolean publishedOnly) {
+    private ProfileDetailsDTO buildDetails(Profile profile, boolean publishedOnly, boolean includeSensitive) {
         UUID userId = profile.getUser().getId();
 
         List<Course> enrolledCourses = publishedOnly
@@ -219,6 +219,8 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
 
         return profileMapper.toDetailsDto(
                 profile,
+                includeSensitive ? profile.getUser().getEmail() : null,
+                includeSensitive ? profile.getUser().getStatus() : null,
                 enrolledCourses.stream().map(apiViewMapper::toCourseSummary).toList(),
                 teachingCourses.stream().map(apiViewMapper::toCourseSummary).toList()
         );

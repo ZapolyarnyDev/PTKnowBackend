@@ -6,6 +6,7 @@ import ptknow.dto.profile.ProfileDetailsDTO;
 import ptknow.dto.profile.ProfileResponseDTO;
 import ptknow.dto.shared.CourseSummaryDTO;
 import ptknow.mapper.ApiViewMapper;
+import ptknow.model.auth.UserStatus;
 import ptknow.model.profile.Profile;
 
 import java.util.List;
@@ -31,17 +32,26 @@ public class ProfileMapper {
         );
     }
 
-    public ProfileDetailsDTO toDetailsDto(Profile entity, List<CourseSummaryDTO> enrolledCourses, List<CourseSummaryDTO> teachingCourses) {
+    public ProfileDetailsDTO toDetailsDto(
+            Profile entity,
+            String email,
+            UserStatus status,
+            List<CourseSummaryDTO> enrolledCourses,
+            List<CourseSummaryDTO> teachingCourses
+    ) {
         if (entity == null) {
             return null;
         }
 
         UUID avatarId = entity.getAvatar() != null ? entity.getAvatar().getId() : null;
         return new ProfileDetailsDTO(
+                entity.getUser() != null ? entity.getUser().getId() : null,
                 entity.getFullName(),
                 entity.getSummary(),
                 entity.getHandle(),
                 apiViewMapper.toFileUrl(avatarId),
+                email,
+                status,
                 entity.getUser() != null ? entity.getUser().getRole() : null,
                 enrolledCourses,
                 teachingCourses
