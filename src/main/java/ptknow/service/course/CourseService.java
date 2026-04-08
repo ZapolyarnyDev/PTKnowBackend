@@ -87,6 +87,7 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
                 .handle(handle)
                 .preview(previewFile)
                 .owner(initiator)
+                .maxUsersAmount(dto.maxUsersAmount())
                 .state(CourseState.DRAFT)
                 .build();
 
@@ -504,6 +505,7 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
         course.setName(dto.name());
         course.setDescription(dto.description());
         course.replaceCourseTags(courseTagsFromNames(dto.tags()));
+        course.setMaxUsersAmount(dto.maxUsersAmount());
 
         Course saved = repository.save(course);
         cleanupUnusedTags(previousTags);

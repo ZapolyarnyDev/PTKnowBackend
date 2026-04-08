@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 import java.util.Set;
@@ -17,6 +18,9 @@ public record CreateCourseDTO(
         @Size(max = 255, message = "Course description must be at most 255 characters")
         @NotBlank String description,
         @ArraySchema(schema = @Schema(example = "java"))
-        @NotEmpty Set<String> tags
+        @NotEmpty Set<String> tags,
+        @Schema(example = "25")
+        @Positive(message = "Course max users amount must be positive")
+        Integer maxUsersAmount
 ) { }
 

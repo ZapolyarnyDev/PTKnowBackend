@@ -83,7 +83,8 @@ class CourseServiceTest {
         CreateCourseDTO dto = new CreateCourseDTO(
                 "Java Backend Basics",
                 "Spring course",
-                Set.of("java")
+                Set.of("java"),
+                10
         );
 
         CourseTag tag = new CourseTag("java");
