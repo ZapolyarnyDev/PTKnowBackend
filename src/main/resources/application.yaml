@@ -59,6 +59,11 @@ app:
       key-prefix: ${APP_FILE_S3_KEY_PREFIX:}
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  recaptcha:
+    enabled: ${APP_RECAPTCHA_ENABLED:false}
+    secret-key: ${APP_RECAPTCHA_SECRET_KEY:}
+    verify-url: ${APP_RECAPTCHA_VERIFY_URL:https://www.google.com/recaptcha/api/siteverify}
+    score-threshold: ${APP_RECAPTCHA_SCORE_THRESHOLD:0.5}
 
 security:
   jwt:

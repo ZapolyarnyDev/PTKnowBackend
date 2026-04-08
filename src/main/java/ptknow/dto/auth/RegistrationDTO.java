@@ -17,5 +17,7 @@ public record RegistrationDTO(
 
         @NotNull(message = "Пароль обязателен")
         @Length(min = 8, max = 32, message = "Длина пароля от 8 до 32 символов")
-        String password
+        String password,
+
+        String recaptchaToken
 ) {}

@@ -28,6 +28,7 @@ public class AuthService implements UserDetailsService {
     AuthRepository repository;
     PasswordEncoder passwordEncoder;
     ProfileService profileService;
+    RecaptchaVerificationService recaptchaVerificationService;
 
     @Transactional
     public Auth register(String fullName, String email, String password) {
@@ -49,6 +50,7 @@ public class AuthService implements UserDetailsService {
 
     @Transactional
     public Auth register(RegistrationDTO registrationDTO) {
+        recaptchaVerificationService.verifyForRegistration(registrationDTO.recaptchaToken());
         return register(registrationDTO.fullName(), registrationDTO.email(), registrationDTO.password());
     }
 
@@ -68,6 +70,7 @@ public class AuthService implements UserDetailsService {
 
     @Transactional
     public Auth authenticate(LoginDTO loginDTO) {
+        recaptchaVerificationService.verifyForLogin(loginDTO.recaptchaToken());
         return authenticate(loginDTO.email(), loginDTO.password());
     }
 
