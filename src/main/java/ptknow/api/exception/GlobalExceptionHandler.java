@@ -61,6 +61,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> handleDataIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest req) {
         log.warn("Data integrity violation on {}", req.getRequestURI(), ex);
+        if (containsValueTooLong(ex)) {
+            return build(HttpStatus.BAD_REQUEST, "validation_failed", req, "One of the fields exceeds the allowed length");
+        }
         return build(HttpStatus.CONFLICT, "resource_already_exists", req, "Request conflicts with current data state");
     }
 
@@ -181,5 +184,17 @@ public class GlobalExceptionHandler {
             case MultipartException ignored -> "Invalid multipart request";
             default -> "Bad request";
         };
+    }
+
+    private boolean containsValueTooLong(Throwable ex) {
+        Throwable current = ex;
+        while (current != null) {
+            String message = current.getMessage();
+            if (message != null && message.contains("value too long for type character varying")) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

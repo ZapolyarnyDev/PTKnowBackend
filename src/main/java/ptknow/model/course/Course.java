@@ -29,17 +29,18 @@ public class Course {
     @Getter
     Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 255)
     @Getter
     @Setter
     String name;
 
+    @Column(length = 255)
     @Getter
     @Setter
     String description;
 
     @Getter
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 255)
     String handle;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)

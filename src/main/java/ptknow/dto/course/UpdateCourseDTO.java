@@ -15,7 +15,7 @@ public record UpdateCourseDTO(
         @Size(max = 255, message = "Course name must be at most 255 characters")
         String name,
         @Schema(example = "Updated course description")
-        @Size(max = 2000, message = "Course description must be at most 2000 characters")
+        @Size(max = 255, message = "Course description must be at most 255 characters")
         String description,
         @ArraySchema(schema = @Schema(example = "spring"))
         Set<String> tags,
