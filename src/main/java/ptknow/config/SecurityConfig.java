@@ -4,6 +4,7 @@ import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,6 +27,7 @@ import ptknow.config.security.RestAccessDeniedHandler;
 import ptknow.config.security.RestAuthenticationEntryPoint;
 import ptknow.filter.AuthRateLimitFilter;
 import ptknow.filter.JwtAuthFilter;
+import ptknow.properties.CorsProperties;
 import ptknow.properties.JwtProperties;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -33,10 +35,12 @@ import java.util.List;
 
 @Configuration
 @EnableMethodSecurity
+@EnableConfigurationProperties(CorsProperties.class)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtProperties jwtProperties;
+    private final CorsProperties corsProperties;
     private final RestAuthenticationEntryPoint authenticationEntryPoint;
     private final RestAccessDeniedHandler accessDeniedHandler;
     private final AuthRateLimitFilter authRateLimitFilter;
@@ -86,7 +90,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedOrigins(corsProperties.getAllowedOrigins());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
