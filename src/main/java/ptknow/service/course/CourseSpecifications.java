@@ -60,10 +60,22 @@ public final class CourseSpecifications {
                 return cb.conjunction();
             }
 
-            String pattern = "%" + q.toLowerCase(Locale.ROOT) + "%";
+            String normalized = q.trim().toLowerCase(Locale.ROOT);
+
+            if (normalized.startsWith("@")) {
+                String handleQuery = normalized.substring(1).trim();
+                if (handleQuery.isBlank()) {
+                    return cb.conjunction();
+                }
+
+                return cb.like(cb.lower(root.get("handle")), handleQuery + "%");
+            }
+
+            String pattern = "%" + normalized + "%";
             return cb.or(
                     cb.like(cb.lower(root.get("name")), pattern),
-                    cb.like(cb.lower(root.get("description")), pattern)
+                    cb.like(cb.lower(root.get("description")), pattern),
+                    cb.like(cb.lower(root.get("handle")), pattern)
             );
         };
     }
