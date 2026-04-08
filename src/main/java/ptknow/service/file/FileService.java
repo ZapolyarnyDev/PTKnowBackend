@@ -123,6 +123,11 @@ public class FileService {
                 .build();
     }
 
+    public File getRequiredFile(UUID id) {
+        return fileRepository.findById(id)
+                .orElseThrow(() -> new FileNotFoundException("File not found"));
+    }
+
     public void deleteFile(UUID id) throws IOException {
         File fileEntity = fileRepository.findById(id)
                 .orElseThrow(() -> new FileNotFoundException("File not found"));

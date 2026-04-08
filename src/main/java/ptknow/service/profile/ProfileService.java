@@ -104,11 +104,12 @@ public class ProfileService implements HandleService<Profile>, OwnershipService<
         String handle = profile.getHandle();
 
         File savedFile = fileService.saveFile(file);
-        profile.setAvatar(savedFile);
+        File managedAvatar = fileService.getRequiredFile(savedFile.getId());
+        profile.setAvatar(managedAvatar);
         Profile updatedProfile = repository.save(profile);
 
         fileAttachmentService.attach(
-                savedFile,
+                managedAvatar,
                 ResourceType.PROFILE,
                 profile.getId().toString(),
                 Purpose.AVATAR,

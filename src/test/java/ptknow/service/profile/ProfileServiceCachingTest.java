@@ -180,6 +180,7 @@ class ProfileServiceCachingTest {
 
         when(profileRepository.findByHandle("artemovv")).thenReturn(Optional.of(profile), Optional.of(profile));
         when(fileService.saveFile(file)).thenReturn(savedFile);
+        when(fileService.getRequiredFile(savedFile.getId())).thenReturn(savedFile);
         when(profileRepository.save(ArgumentMatchers.any(Profile.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         profileService.getByHandle("artemovv");
@@ -187,6 +188,7 @@ class ProfileServiceCachingTest {
         profileService.getByHandle("artemovv");
 
         verify(profileRepository, times(2)).findByHandle("artemovv");
+        verify(fileService, times(1)).getRequiredFile(savedFile.getId());
         verify(fileAttachmentService, times(1)).attach(eq(savedFile), any(), anyString(), any(), any(), eq(user));
     }
 
