@@ -108,7 +108,7 @@ public class FileAccessService implements OwnershipService<Long> {
         if (resourceId == null)
             return false;
 
-        return courseService.isOwner(resourceId, u);
+        return courseService.canEdit(courseService.findCourseById(resourceId), u);
     }
 
     private boolean isLessonOwner(FileAttachment a, Auth u) {

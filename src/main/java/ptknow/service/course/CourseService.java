@@ -570,7 +570,7 @@ public class CourseService implements HandleService<Course>, OwnershipService<Lo
     }
 
     private FileVisibility previewVisibilityFor(CourseState state) {
-        return state == CourseState.PUBLISHED ? FileVisibility.ENROLLED : FileVisibility.PRIVATE;
+        return state == CourseState.PUBLISHED ? FileVisibility.PUBLIC : FileVisibility.PRIVATE;
     }
 
     private void validateCourseNameIsAvailable(Course course, String newName) {
